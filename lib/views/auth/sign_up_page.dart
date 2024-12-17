@@ -1,73 +1,60 @@
 import 'package:flutter/material.dart';
 import '../../controllers/auth_controller.dart';
+import '../../utils/validators.dart';
 
 class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
-
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  _SignUpPageState createState() => _SignUpPageState();
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _passwordController = TextEditingController();
   final AuthController _authController = AuthController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
+      appBar: AppBar(
+        title: Text('Sign Up'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+                validator: Validators.validateName,
+              ),
+              TextFormField(
                 controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) =>
-                value == null || value.isEmpty ? 'Enter your email' : null,
+                decoration: InputDecoration(labelText: 'Email'),
+                validator: Validators.validateEmail,
               ),
               TextFormField(
                 controller: _passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password'),
-                validator: (value) => value != null && value.length < 6
-                    ? 'Password must be at least 6 characters'
-                    : null,
+                validator: Validators.validatePassword,
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _signUp,
-                child: const Text('Sign Up'),
-              ),
-              TextButton(
-                onPressed: () =>
-                    Navigator.pushNamed(context, '/sign-in'), // Navigate to Sign-In
-                child: const Text('Already have an account? Sign In'),
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    await _authController.register(_emailController.text, _passwordController.text);
+                  }
+                },
+                child: Text('Sign Up'),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  void _signUp() async {
-    if (_formKey.currentState!.validate()) {
-      String email = _emailController.text.trim();
-      String password = _passwordController.text.trim();
-
-      String result = await _authController.signUp(email, password);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(result)));
-      if (result == 'Success') {
-        Navigator.pushReplacementNamed(context, '/home'); // Go to Home Page
-      }
-    }
   }
 }
