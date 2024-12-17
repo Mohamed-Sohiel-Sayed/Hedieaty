@@ -6,12 +6,19 @@ class HomeController {
 
   Future<List<User>> getFriends(String userId) async {
     DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
-    List<dynamic> friendsIds = userDoc['friends'];
+
+    if (!userDoc.exists) {
+      throw Exception('User document does not exist');
+    }
+
+    List<dynamic> friendsIds = userDoc['friends'] ?? [];
 
     List<User> friends = [];
     for (String friendId in friendsIds) {
       DocumentSnapshot friendDoc = await _firestore.collection('users').doc(friendId).get();
-      friends.add(User.fromFirestore(friendDoc));
+      if (friendDoc.exists) {
+        friends.add(User.fromFirestore(friendDoc));
+      }
     }
     return friends;
   }
