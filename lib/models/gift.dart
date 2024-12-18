@@ -5,10 +5,10 @@ class Gift {
   final String name;
   final String description;
   final String category;
+  final double price;
   final String status;
   final String eventId;
   final bool isPledged;
-  final double price;
   final String imageUrl;
 
   Gift({
@@ -16,10 +16,10 @@ class Gift {
     required this.name,
     required this.description,
     required this.category,
+    required this.price,
     required this.status,
     required this.eventId,
     required this.isPledged,
-    required this.price,
     required this.imageUrl,
   });
 
@@ -30,10 +30,10 @@ class Gift {
       name: data['name'] ?? '',
       description: data['description'] ?? '',
       category: data['category'] ?? '',
+      price: data['price']?.toDouble() ?? 0.0,
       status: data['status'] ?? '',
       eventId: data['eventId'] ?? '',
       isPledged: data['isPledged'] ?? false,
-      price: data['price'] ?? 0.0,
       imageUrl: data['imageUrl'] ?? '',
     );
   }
@@ -44,10 +44,10 @@ class Gift {
       'name': name,
       'description': description,
       'category': category,
+      'price': price,
       'status': status,
       'eventId': eventId,
       'isPledged': isPledged,
-      'price': price,
       'imageUrl': imageUrl,
     };
   }
@@ -57,10 +57,10 @@ class Gift {
     String? name,
     String? description,
     String? category,
+    double? price,
     String? status,
     String? eventId,
     bool? isPledged,
-    double? price,
     String? imageUrl,
   }) {
     return Gift(
@@ -68,10 +68,10 @@ class Gift {
       name: name ?? this.name,
       description: description ?? this.description,
       category: category ?? this.category,
+      price: price ?? this.price,
       status: status ?? this.status,
       eventId: eventId ?? this.eventId,
       isPledged: isPledged ?? this.isPledged,
-      price: price ?? this.price,
       imageUrl: imageUrl ?? this.imageUrl,
     );
   }
