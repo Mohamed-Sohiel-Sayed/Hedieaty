@@ -21,9 +21,8 @@ class AuthService {
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       User? user = result.user;
       if (user != null) {
-        String userId = '${name}Id';
         app_user.User newUser = app_user.User(
-          id: userId,
+          id: user.uid,
           name: name,
           email: user.email!,
           profilePictureUrl: '',
