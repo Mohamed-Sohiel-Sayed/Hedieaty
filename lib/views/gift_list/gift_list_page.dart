@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../controllers/gift_controller.dart';
 import '../../models/gift.dart';
+import '../../routes.dart';
 import '../../services/auth_service.dart';
 import 'widgets/gift_list_item.dart';
 import 'widgets/gift_form.dart';
+import '../../shared/widgets/bottom_navigation_bar.dart';
 
 class GiftListPage extends StatefulWidget {
   final String eventId;
+  final String userId;
 
-  GiftListPage({required this.eventId});
+  GiftListPage({required this.eventId, required this.userId});
 
   @override
   _GiftListPageState createState() => _GiftListPageState();
@@ -20,12 +23,14 @@ class _GiftListPageState extends State<GiftListPage> {
   final AuthService _authService = AuthService();
   late Stream<List<Gift>> _giftsStream;
   String _sortCriteria = 'name';
+  bool _isCurrentUser = false;
 
   @override
   void initState() {
     super.initState();
     firebase_auth.User? currentUser = _authService.getCurrentUser();
     if (currentUser != null) {
+      _isCurrentUser = currentUser.uid == widget.userId;
       _giftsStream = _controller.getGifts(widget.eventId);
     } else {
       // Handle the case where the user is not signed in
@@ -34,19 +39,22 @@ class _GiftListPageState extends State<GiftListPage> {
   }
 
   void _showGiftForm({Gift? gift}) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return GiftForm(
-          gift: gift,
-          onSave: (Gift savedGift) {
-            setState(() {});
-          },
-          eventId: widget.eventId, // Pass the eventId to the GiftForm
-        );
-      },
-    );
+    if (_isCurrentUser) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return GiftForm(
+            gift: gift,
+            onSave: (Gift savedGift) {
+              setState(() {});
+            },
+            eventId: widget.eventId,
+            userId: widget.userId, // Pass the userId to the GiftForm
+          );
+        },
+      );
+    }
   }
 
   List<Gift> _sortGifts(List<Gift> gifts) {
@@ -69,14 +77,16 @@ class _GiftListPageState extends State<GiftListPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Gift List'),
-        actions: [
+        actions: _isCurrentUser
+            ? [
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () {
               _showGiftForm();
             },
           ),
-        ],
+        ]
+            : null,
       ),
       body: Column(
         children: [
@@ -115,11 +125,11 @@ class _GiftListPageState extends State<GiftListPage> {
                     itemBuilder: (context, index) {
                       return GiftListItem(
                         gift: gifts[index],
-                        onEdit: () {
-                          if (!gifts[index].isPledged) {
-                            _showGiftForm(gift: gifts[index]);
-                          }
-                        },
+                        onEdit: _isCurrentUser && !gifts[index].isPledged
+                            ? () {
+                          _showGiftForm(gift: gifts[index]);
+                        }
+                            : null,
                       );
                     },
                   );
@@ -128,6 +138,16 @@ class _GiftListPageState extends State<GiftListPage> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: AppBottomNavigationBar(
+        currentIndex: 1,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+          } else if (index == 2) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
+          }
+        },
       ),
     );
   }

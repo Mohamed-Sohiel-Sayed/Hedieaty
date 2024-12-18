@@ -10,6 +10,7 @@ class Gift {
   final String status;
   final String eventId;
   final bool isPledged;
+  final String userId; // Add this property
 
   Gift({
     required this.id,
@@ -21,8 +22,10 @@ class Gift {
     required this.status,
     required this.eventId,
     required this.isPledged,
+    required this.userId, // Add this property
   });
 
+  // Add this property to the fromFirestore method
   factory Gift.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map;
     return Gift(
@@ -35,12 +38,12 @@ class Gift {
       status: data['status'] ?? '',
       eventId: data['eventId'] ?? '',
       isPledged: data['isPledged'] ?? false,
+      userId: data['userId'] ?? '', // Add this property
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'name': name,
       'description': description,
       'category': category,
@@ -49,6 +52,7 @@ class Gift {
       'status': status,
       'eventId': eventId,
       'isPledged': isPledged,
+      'userId': userId, // Add this property
     };
   }
 
@@ -62,6 +66,7 @@ class Gift {
     String? status,
     String? eventId,
     bool? isPledged,
+    String? userId, // Add this property
   }) {
     return Gift(
       id: id ?? this.id,
@@ -73,6 +78,7 @@ class Gift {
       status: status ?? this.status,
       eventId: eventId ?? this.eventId,
       isPledged: isPledged ?? this.isPledged,
+      userId: userId ?? this.userId, // Add this property
     );
   }
 }

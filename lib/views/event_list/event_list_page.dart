@@ -9,6 +9,10 @@ import '../../shared/widgets/bottom_navigation_bar.dart';
 import '../../routes.dart';
 
 class EventListPage extends StatefulWidget {
+  final String userId;
+
+  EventListPage({required this.userId});
+
   @override
   _EventListPageState createState() => _EventListPageState();
 }
@@ -18,13 +22,15 @@ class _EventListPageState extends State<EventListPage> {
   final AuthService _authService = AuthService();
   late Stream<List<Event>> _eventsStream;
   String _sortCriteria = 'name';
+  bool _isCurrentUser = false;
 
   @override
   void initState() {
     super.initState();
     firebase_auth.User? currentUser = _authService.getCurrentUser();
     if (currentUser != null) {
-      _eventsStream = _controller.getEvents(currentUser.uid);
+      _isCurrentUser = currentUser.uid == widget.userId;
+      _eventsStream = _controller.getEvents(widget.userId);
     } else {
       // Handle the case where the user is not signed in
       _eventsStream = Stream.error('User not signed in');
@@ -32,18 +38,20 @@ class _EventListPageState extends State<EventListPage> {
   }
 
   void _showEventForm({Event? event}) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return EventForm(
-          event: event,
-          onSave: (Event savedEvent) {
-            setState(() {});
-          },
-        );
-      },
-    );
+    if (_isCurrentUser) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return EventForm(
+            event: event,
+            onSave: (Event savedEvent) {
+              setState(() {});
+            },
+          );
+        },
+      );
+    }
   }
 
   List<Event> _sortEvents(List<Event> events) {
@@ -66,14 +74,16 @@ class _EventListPageState extends State<EventListPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Event List'),
-        actions: [
+        actions: _isCurrentUser
+            ? [
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () {
               _showEventForm();
             },
           ),
-        ],
+        ]
+            : null,
       ),
       body: Column(
         children: [
@@ -112,9 +122,11 @@ class _EventListPageState extends State<EventListPage> {
                     itemBuilder: (context, index) {
                       return EventListItem(
                         event: events[index],
-                        onEdit: () {
+                        onEdit: _isCurrentUser
+                            ? () {
                           _showEventForm(event: events[index]);
-                        },
+                        }
+                            : null,
                       );
                     },
                   );

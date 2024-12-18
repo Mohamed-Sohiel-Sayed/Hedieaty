@@ -10,8 +10,9 @@ class GiftForm extends StatefulWidget {
   final Gift? gift;
   final Function(Gift) onSave;
   final String eventId;
+  final String userId; // Add this parameter
 
-  GiftForm({this.gift, required this.onSave, required this.eventId});
+  GiftForm({this.gift, required this.onSave, required this.eventId, required this.userId});
 
   @override
   _GiftFormState createState() => _GiftFormState();
@@ -127,6 +128,7 @@ class _GiftFormState extends State<GiftForm> {
                           status: 'available',
                           eventId: widget.eventId, // Set the eventId appropriately
                           isPledged: false,
+                          userId: widget.userId, // Set the userId appropriately
                         );
                         await _controller.addGift(gift);
                         widget.onSave(gift);
@@ -142,6 +144,7 @@ class _GiftFormState extends State<GiftForm> {
                           status: widget.gift!.status,
                           eventId: widget.gift!.eventId,
                           isPledged: widget.gift!.isPledged,
+                          userId: widget.gift!.userId, // Set the userId appropriately
                         );
                         await _controller.updateGift(updatedGift);
                         widget.onSave(updatedGift);

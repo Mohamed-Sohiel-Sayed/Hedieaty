@@ -6,9 +6,9 @@ import '../../../routes.dart';
 class EventListItem extends StatelessWidget {
   final Event event;
   final EventController _controller = EventController();
-  final VoidCallback onEdit;
+  final VoidCallback? onEdit;
 
-  EventListItem({required this.event, required this.onEdit});
+  EventListItem({required this.event, this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,8 @@ class EventListItem extends StatelessWidget {
           ),
         ],
       ),
-      trailing: Row(
+      trailing: onEdit != null
+          ? Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
@@ -41,11 +42,12 @@ class EventListItem extends StatelessWidget {
             },
           ),
         ],
-      ),
+      )
+          : null,
       onTap: () {
         Navigator.of(context).pushNamed(
           AppRoutes.giftList,
-          arguments: event.id,
+          arguments: {'eventId': event.id, 'userId': event.userId},
         );
       },
     );

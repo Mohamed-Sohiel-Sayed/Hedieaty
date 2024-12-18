@@ -6,9 +6,9 @@ import '../../../routes.dart';
 class GiftListItem extends StatelessWidget {
   final Gift gift;
   final GiftController _controller = GiftController();
-  final VoidCallback onEdit;
+  final VoidCallback? onEdit;
 
-  GiftListItem({required this.gift, required this.onEdit});
+  GiftListItem({required this.gift, this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,8 @@ class GiftListItem extends StatelessWidget {
             ),
         ],
       ),
-      trailing: Row(
+      trailing: onEdit != null
+          ? Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
@@ -44,11 +45,12 @@ class GiftListItem extends StatelessWidget {
             },
           ),
         ],
-      ),
+      )
+          : null,
       onTap: () {
         Navigator.of(context).pushNamed(
           AppRoutes.giftDetails,
-          arguments: gift,
+          arguments: {'gift': gift, 'userId': gift.userId},
         );
       },
     );

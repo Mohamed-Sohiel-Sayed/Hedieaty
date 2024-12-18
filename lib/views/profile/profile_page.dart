@@ -158,7 +158,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           onTap: () {
                             Navigator.of(context).pushNamed(
                               AppRoutes.giftList,
-                              arguments: events[index].id,
+                              arguments: {'eventId': events[index].id, 'userId': _currentUser!.uid},
                             );
                           },
                         );
@@ -194,7 +194,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           onTap: () {
                             Navigator.of(context).pushNamed(
                               AppRoutes.giftDetails,
-                              arguments: gifts[index],
+                              arguments: {'gift': gifts[index], 'userId': _currentUser!.uid},
                             );
                           },
                         );
@@ -220,7 +220,12 @@ class _ProfilePageState extends State<ProfilePage> {
           if (index == 0) {
             Navigator.of(context).pushReplacementNamed(AppRoutes.home);
           } else if (index == 1) {
-            Navigator.of(context).pushReplacementNamed(AppRoutes.eventList);
+            if (_currentUser != null) {
+              Navigator.of(context).pushReplacementNamed(
+                AppRoutes.eventList,
+                arguments: _currentUser!.uid,
+              );
+            }
           }
         },
       ),

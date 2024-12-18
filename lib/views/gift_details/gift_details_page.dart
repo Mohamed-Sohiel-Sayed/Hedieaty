@@ -8,8 +8,9 @@ import '../../services/auth_service.dart';
 
 class GiftDetailsPage extends StatefulWidget {
   final Gift gift;
+  final String userId;
 
-  GiftDetailsPage({required this.gift});
+  GiftDetailsPage({required this.gift, required this.userId});
 
   @override
   _GiftDetailsPageState createState() => _GiftDetailsPageState();
@@ -24,6 +25,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
   final GiftController _controller = GiftController();
   final AuthService _authService = AuthService();
   bool _isPledged = false;
+  bool _isCurrentUser = false;
   File? _image;
 
   @override
@@ -34,6 +36,10 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
     _categoryController = TextEditingController(text: widget.gift.category);
     _priceController = TextEditingController(text: widget.gift.price.toString());
     _isPledged = widget.gift.isPledged;
+    firebase_auth.User? currentUser = _authService.getCurrentUser();
+    if (currentUser != null) {
+      _isCurrentUser = currentUser.uid == widget.userId;
+    }
   }
 
   Future<void> _pickImage() async {
@@ -67,7 +73,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                     }
                     return null;
                   },
-                  enabled: !_isPledged,
+                  enabled: !_isPledged && _isCurrentUser,
                 ),
                 TextFormField(
                   controller: _descriptionController,
@@ -78,7 +84,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                     }
                     return null;
                   },
-                  enabled: !_isPledged,
+                  enabled: !_isPledged && _isCurrentUser,
                 ),
                 TextFormField(
                   controller: _categoryController,
@@ -89,7 +95,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                     }
                     return null;
                   },
-                  enabled: !_isPledged,
+                  enabled: !_isPledged && _isCurrentUser,
                 ),
                 TextFormField(
                   controller: _priceController,
@@ -101,14 +107,14 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                     }
                     return null;
                   },
-                  enabled: !_isPledged,
+                  enabled: !_isPledged && _isCurrentUser,
                 ),
                 SizedBox(height: 20),
                 _image == null
                     ? Text('No image selected.')
                     : Image.file(_image!),
                 ElevatedButton(
-                  onPressed: _isPledged ? null : _pickImage,
+                  onPressed: _isPledged || !_isCurrentUser ? null : _pickImage,
                   child: Text('Upload Image'),
                 ),
                 SizedBox(height: 20),
@@ -116,7 +122,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                   title: Text('Pledged'),
                   value: _isPledged,
                   onChanged: (bool value) {
-                    if (!_isPledged) {
+                    if (!_isPledged && _isCurrentUser) {
                       setState(() {
                         _isPledged = value;
                       });
@@ -125,7 +131,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _isPledged
+                  onPressed: _isPledged || !_isCurrentUser
                       ? null
                       : () async {
                     if (_formKey.currentState!.validate()) {
@@ -138,7 +144,10 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                           category: _categoryController.text,
                           price: double.parse(_priceController.text),
                           eventId: widget.gift.eventId,
-                          isPledged: _isPledged, status: 'pending', imageUrl: '',
+                          isPledged: _isPledged,
+                          status: widget.gift.status,
+                          imageUrl: widget.gift.imageUrl,
+                          userId: widget.gift.userId,
                         );
                         await _controller.updateGift(updatedGift);
                         Navigator.of(context).pop();
