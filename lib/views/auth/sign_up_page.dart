@@ -46,7 +46,7 @@ class _SignUpPageState extends State<SignUpPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
-                    await _authController.register(_emailController.text, _passwordController.text);
+                    await _authController.register(_emailController.text, _passwordController.text, _nameController.text);
                   }
                 },
                 child: Text('Sign Up'),
