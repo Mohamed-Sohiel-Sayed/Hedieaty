@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../controllers/home_controller.dart';
 import '../../models/user.dart';
+import '../../services/auth_service.dart';
 import 'widgets/friend_list_item.dart';
 
 class HomePage extends StatefulWidget {
@@ -10,12 +12,19 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final HomeController _controller = HomeController();
+  final AuthService _authService = AuthService();
   late Future<List<User>> _friendsFuture;
 
   @override
   void initState() {
     super.initState();
-    _friendsFuture = _controller.getFriends('currentUserId'); // Replace with actual user ID
+    firebase_auth.User? currentUser = _authService.getCurrentUser();
+    if (currentUser != null) {
+      _friendsFuture = _controller.getFriends(currentUser.uid);
+    } else {
+      // Handle the case where the user is not signed in
+      _friendsFuture = Future.error('User not signed in');
+    }
   }
 
   @override
