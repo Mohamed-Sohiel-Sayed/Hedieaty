@@ -22,7 +22,6 @@ class _GiftFormState extends State<GiftForm> {
   late TextEditingController _descriptionController;
   late TextEditingController _categoryController;
   late TextEditingController _priceController;
-  late TextEditingController _statusController;
   final GiftController _controller = GiftController();
   final AuthService _authService = AuthService();
   File? _image;
@@ -34,7 +33,6 @@ class _GiftFormState extends State<GiftForm> {
     _descriptionController = TextEditingController(text: widget.gift?.description ?? '');
     _categoryController = TextEditingController(text: widget.gift?.category ?? '');
     _priceController = TextEditingController(text: widget.gift?.price.toString() ?? '');
-    _statusController = TextEditingController(text: widget.gift?.status ?? '');
   }
 
   Future<void> _pickImage() async {
@@ -102,16 +100,6 @@ class _GiftFormState extends State<GiftForm> {
                   return null;
                 },
               ),
-              TextFormField(
-                controller: _statusController,
-                decoration: InputDecoration(labelText: 'Status'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a status';
-                  }
-                  return null;
-                },
-              ),
               SizedBox(height: 20),
               _image == null
                   ? Text('No image selected.')
@@ -134,10 +122,10 @@ class _GiftFormState extends State<GiftForm> {
                           description: _descriptionController.text,
                           category: _categoryController.text,
                           price: double.parse(_priceController.text),
-                          status: _statusController.text,
+                          imageUrl: '', // Handle image upload separately
+                          status: 'available',
                           eventId: widget.gift!.eventId,
                           isPledged: false,
-                          imageUrl: '', // Handle image upload separately
                         );
                         await _controller.addGift(gift);
                         widget.onSave(gift);
@@ -149,10 +137,10 @@ class _GiftFormState extends State<GiftForm> {
                           description: _descriptionController.text,
                           category: _categoryController.text,
                           price: double.parse(_priceController.text),
-                          status: _statusController.text,
+                          imageUrl: widget.gift!.imageUrl, // Handle image upload separately
+                          status: widget.gift!.status,
                           eventId: widget.gift!.eventId,
                           isPledged: widget.gift!.isPledged,
-                          imageUrl: widget.gift!.imageUrl, // Handle image upload separately
                         );
                         await _controller.updateGift(updatedGift);
                         widget.onSave(updatedGift);
