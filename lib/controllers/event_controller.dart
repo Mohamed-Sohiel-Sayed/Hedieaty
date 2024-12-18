@@ -25,10 +25,14 @@ class EventController {
   }
 
   Future<int> getUpcomingEventsCount(String userId) async {
-    QuerySnapshot snapshot = await _firestore.collection('events')
-        .where('userId', isEqualTo: userId)
-        .where('date', isGreaterThan: DateTime.now())
-        .get();
-    return snapshot.docs.length;
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('events')
+          .where('userId', isEqualTo: userId)
+          .where('date', isGreaterThan: DateTime.now().toIso8601String())
+          .get();
+      return snapshot.docs.length;
+    } catch (e) {
+      return 0;
+    }
   }
 }
