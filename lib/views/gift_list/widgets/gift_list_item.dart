@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/gift.dart';
 import '../../../controllers/gift_controller.dart';
+import '../../gift_details/gift_details_page.dart';
 
 class GiftListItem extends StatelessWidget {
   final Gift gift;
@@ -37,13 +38,19 @@ class GiftListItem extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.delete),
             onPressed: () async {
-              await _controller.deleteGift(gift.id);
+              if (!gift.isPledged) {
+                await _controller.deleteGift(gift.id);
+              }
             },
           ),
         ],
       ),
       onTap: () {
-        // Navigate to gift details page
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => GiftDetailsPage(gift: gift),
+          ),
+        );
       },
     );
   }
