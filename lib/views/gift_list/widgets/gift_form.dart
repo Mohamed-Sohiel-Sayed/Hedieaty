@@ -124,7 +124,7 @@ class _GiftFormState extends State<GiftForm> {
                           price: double.parse(_priceController.text),
                           imageUrl: '', // Handle image upload separately
                           status: 'available',
-                          eventId: widget.gift!.eventId,
+                          eventId: '', // Set the eventId appropriately
                           isPledged: false,
                         );
                         await _controller.addGift(gift);
