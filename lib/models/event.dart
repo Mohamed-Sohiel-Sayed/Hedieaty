@@ -57,4 +57,16 @@ class Event {
       userId: userId ?? this.userId,
     );
   }
+
+  String getStatus() {
+    DateTime eventDate = DateTime.parse(this.date);
+    DateTime now = DateTime.now();
+    if (eventDate.isBefore(now)) {
+      return 'Past';
+    } else if (eventDate.isAfter(now)) {
+      return 'Upcoming';
+    } else {
+      return 'Current';
+    }
+  }
 }
