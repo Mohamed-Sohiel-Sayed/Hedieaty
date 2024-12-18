@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'models/gift.dart';
 import 'views/home/home_page.dart';
 import 'views/event_list/event_list_page.dart';
 import 'views/gift_list/gift_list_page.dart';
@@ -24,11 +23,14 @@ class AppRoutes {
       case home:
         return _createRoute(HomePage());
       case eventList:
-        return _createRoute(EventListPage());
+        final userId = settings.arguments as String;
+        return _createRoute(EventListPage(userId: userId));
       case giftList:
-        return _createRoute(GiftListPage(eventId: settings.arguments as String));
+        final args = settings.arguments as Map<String, String>;
+        return _createRoute(GiftListPage(eventId: args['eventId']!, userId: args['userId']!));
       case giftDetails:
-        return _createRoute(GiftDetailsPage(gift: settings.arguments as Gift));
+        final args = settings.arguments as Map<String, dynamic>;
+        return _createRoute(GiftDetailsPage(gift: args['gift'], userId: args['userId']));
       case profile:
         return _createRoute(ProfilePage());
       case myPledgedGifts:

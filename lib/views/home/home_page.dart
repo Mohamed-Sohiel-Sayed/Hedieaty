@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _createEventOrList() {
-    Navigator.of(context).pushNamed(AppRoutes.eventList);
+    Navigator.of(context).pushNamed(AppRoutes.eventList, arguments: _authService.getCurrentUser()!.uid);
   }
 
   @override
@@ -99,7 +99,7 @@ class _HomePageState extends State<HomePage> {
                               subtitle: 'Loading upcoming events...',
                               onTap: () {
                                 Navigator.of(context).pushNamed(
-                                  AppRoutes.giftList,
+                                  AppRoutes.eventList,
                                   arguments: friends[index].id,
                                 );
                               },
@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> {
                               subtitle: 'Error loading events',
                               onTap: () {
                                 Navigator.of(context).pushNamed(
-                                  AppRoutes.giftList,
+                                  AppRoutes.eventList,
                                   arguments: friends[index].id,
                                 );
                               },
@@ -126,7 +126,7 @@ class _HomePageState extends State<HomePage> {
                                   : 'No Upcoming Events',
                               onTap: () {
                                 Navigator.of(context).pushNamed(
-                                  AppRoutes.giftList,
+                                  AppRoutes.eventList,
                                   arguments: friends[index].id,
                                 );
                               },
@@ -146,7 +146,7 @@ class _HomePageState extends State<HomePage> {
         currentIndex: 0,
         onTap: (index) {
           if (index == 1) {
-            Navigator.of(context).pushReplacementNamed(AppRoutes.eventList);
+            Navigator.of(context).pushReplacementNamed(AppRoutes.eventList, arguments: _authService.getCurrentUser()!.uid);
           } else if (index == 2) {
             Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
           }
