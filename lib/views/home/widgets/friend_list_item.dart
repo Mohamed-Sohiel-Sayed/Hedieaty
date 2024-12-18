@@ -10,7 +10,9 @@ class FriendListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundImage: NetworkImage(friend.profilePictureUrl),
+        backgroundImage: friend.profilePictureUrl.isNotEmpty
+            ? NetworkImage(friend.profilePictureUrl)
+            : AssetImage('assets/placeholder.png') as ImageProvider,
       ),
       title: Text(friend.name),
       subtitle: Text('Upcoming Events: ${friend.preferences.length}'), // Replace with actual logic
