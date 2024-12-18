@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../controllers/gift_controller.dart';
 import '../../../models/gift.dart';
 import '../../../services/auth_service.dart';
@@ -17,17 +19,31 @@ class GiftForm extends StatefulWidget {
 class _GiftFormState extends State<GiftForm> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
   late TextEditingController _categoryController;
+  late TextEditingController _priceController;
   late TextEditingController _statusController;
   final GiftController _controller = GiftController();
   final AuthService _authService = AuthService();
+  File? _image;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.gift?.name ?? '');
+    _descriptionController = TextEditingController(text: widget.gift?.description ?? '');
     _categoryController = TextEditingController(text: widget.gift?.category ?? '');
+    _priceController = TextEditingController(text: widget.gift?.price.toString() ?? '');
     _statusController = TextEditingController(text: widget.gift?.status ?? '');
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
   }
 
   @override
@@ -56,11 +72,32 @@ class _GiftFormState extends State<GiftForm> {
                 },
               ),
               TextFormField(
+                controller: _descriptionController,
+                decoration: InputDecoration(labelText: 'Description'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a description';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
                 controller: _categoryController,
                 decoration: InputDecoration(labelText: 'Category'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a category';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _priceController,
+                decoration: InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a price';
                   }
                   return null;
                 },
@@ -76,6 +113,14 @@ class _GiftFormState extends State<GiftForm> {
                 },
               ),
               SizedBox(height: 20),
+              _image == null
+                  ? Text('No image selected.')
+                  : Image.file(_image!),
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: Text('Upload Image'),
+              ),
+              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
@@ -86,10 +131,13 @@ class _GiftFormState extends State<GiftForm> {
                         Gift gift = Gift(
                           id: '', // Temporary ID, will be replaced by Firestore
                           name: _nameController.text,
+                          description: _descriptionController.text,
                           category: _categoryController.text,
+                          price: double.parse(_priceController.text),
                           status: _statusController.text,
                           eventId: widget.gift!.eventId,
-                          isPledged: false, description: '', price: 0.0, imageUrl: '',
+                          isPledged: false,
+                          imageUrl: '', // Handle image upload separately
                         );
                         await _controller.addGift(gift);
                         widget.onSave(gift);
@@ -98,10 +146,13 @@ class _GiftFormState extends State<GiftForm> {
                         Gift updatedGift = Gift(
                           id: widget.gift!.id,
                           name: _nameController.text,
+                          description: _descriptionController.text,
                           category: _categoryController.text,
+                          price: double.parse(_priceController.text),
                           status: _statusController.text,
                           eventId: widget.gift!.eventId,
-                          isPledged: widget.gift!.isPledged, description: '', price: 0.0, imageUrl: '',
+                          isPledged: widget.gift!.isPledged,
+                          imageUrl: widget.gift!.imageUrl, // Handle image upload separately
                         );
                         await _controller.updateGift(updatedGift);
                         widget.onSave(updatedGift);
