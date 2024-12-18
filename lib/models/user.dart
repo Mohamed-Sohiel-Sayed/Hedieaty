@@ -28,4 +28,15 @@ class User {
       friends: List<String>.from(data['friends'] ?? []),
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'profilePictureUrl': profilePictureUrl,
+      'preferences': preferences,
+      'friends': friends,
+    };
+  }
 }
