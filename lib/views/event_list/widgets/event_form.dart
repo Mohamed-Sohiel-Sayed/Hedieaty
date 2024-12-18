@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:intl/intl.dart';
 import '../../../controllers/event_controller.dart';
 import '../../../models/event.dart';
 import '../../../services/auth_service.dart';
@@ -22,6 +23,7 @@ class _EventFormState extends State<EventForm> {
   late TextEditingController _descriptionController;
   final EventController _controller = EventController();
   final AuthService _authService = AuthService();
+  DateTime? _selectedDate;
 
   @override
   void initState() {
@@ -30,6 +32,24 @@ class _EventFormState extends State<EventForm> {
     _dateController = TextEditingController(text: widget.event?.date ?? '');
     _locationController = TextEditingController(text: widget.event?.location ?? '');
     _descriptionController = TextEditingController(text: widget.event?.description ?? '');
+    if (widget.event != null) {
+      _selectedDate = DateTime.parse(widget.event!.date);
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
+    }
   }
 
   @override
@@ -60,9 +80,11 @@ class _EventFormState extends State<EventForm> {
               TextFormField(
                 controller: _dateController,
                 decoration: InputDecoration(labelText: 'Date'),
+                readOnly: true,
+                onTap: () => _selectDate(context),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a date';
+                    return 'Please select a date';
                   }
                   return null;
                 },
