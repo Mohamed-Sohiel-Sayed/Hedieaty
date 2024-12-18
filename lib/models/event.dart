@@ -39,4 +39,22 @@ class Event {
       'userId': userId,
     };
   }
+
+  Event copyWith({
+    String? id,
+    String? name,
+    String? date,
+    String? location,
+    String? description,
+    String? userId,
+  }) {
+    return Event(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      date: date ?? this.date,
+      location: location ?? this.location,
+      description: description ?? this.description,
+      userId: userId ?? this.userId,
+    );
+  }
 }
