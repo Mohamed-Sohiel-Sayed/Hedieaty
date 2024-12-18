@@ -23,4 +23,12 @@ class EventController {
       return snapshot.docs.map((doc) => Event.fromFirestore(doc)).toList();
     });
   }
+
+  Future<int> getUpcomingEventsCount(String userId) async {
+    QuerySnapshot snapshot = await _firestore.collection('events')
+        .where('userId', isEqualTo: userId)
+        .where('date', isGreaterThan: DateTime.now())
+        .get();
+    return snapshot.docs.length;
+  }
 }
