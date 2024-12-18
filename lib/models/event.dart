@@ -61,9 +61,12 @@ class Event {
   String getStatus() {
     DateTime eventDate = DateTime.parse(this.date);
     DateTime now = DateTime.now();
-    if (eventDate.isBefore(now)) {
+    DateTime today = DateTime(now.year, now.month, now.day);
+    DateTime eventDay = DateTime(eventDate.year, eventDate.month, eventDate.day);
+
+    if (eventDay.isBefore(today)) {
       return 'Past';
-    } else if (eventDate.isAfter(now)) {
+    } else if (eventDay.isAfter(today)) {
       return 'Upcoming';
     } else {
       return 'Current';
