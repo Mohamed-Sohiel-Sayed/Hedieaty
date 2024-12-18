@@ -5,9 +5,8 @@ import '../../controllers/event_controller.dart';
 import '../../models/user.dart';
 import '../../routes.dart';
 import '../../services/auth_service.dart';
-import '../gift_list/gift_list_page.dart';
 import 'widgets/friend_list_item.dart';
-import '../event_list/event_list_page.dart';
+import '../../shared/widgets/bottom_navigation_bar.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -41,11 +40,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _createEventOrList() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => EventListPage(),
-      ),
-    );
+    Navigator.of(context).pushNamed(AppRoutes.eventList);
   }
 
   @override
@@ -103,37 +98,36 @@ class _HomePageState extends State<HomePage> {
                               friend: friends[index],
                               subtitle: 'Loading upcoming events...',
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => GiftListPage(eventId: friends[index].id),
-                                  ),
+                                Navigator.of(context).pushNamed(
+                                  AppRoutes.giftList,
+                                  arguments: friends[index].id,
                                 );
                               },
                             );
                           } else if (eventSnapshot.hasError) {
+                            print('Error loading events for friend ${friends[index].id}: ${eventSnapshot.error}');
                             return FriendListItem(
                               friend: friends[index],
                               subtitle: 'Error loading events',
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => GiftListPage(eventId: friends[index].id),
-                                  ),
+                                Navigator.of(context).pushNamed(
+                                  AppRoutes.giftList,
+                                  arguments: friends[index].id,
                                 );
                               },
                             );
                           } else {
                             int upcomingEventsCount = eventSnapshot.data ?? 0;
+                            print('Upcoming events for friend ${friends[index].id}: $upcomingEventsCount');
                             return FriendListItem(
                               friend: friends[index],
                               subtitle: upcomingEventsCount > 0
                                   ? 'Upcoming Events: $upcomingEventsCount'
                                   : 'No Upcoming Events',
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => GiftListPage(eventId: friends[index].id),
-                                  ),
+                                Navigator.of(context).pushNamed(
+                                  AppRoutes.giftList,
+                                  arguments: friends[index].id,
                                 );
                               },
                             );
@@ -147,6 +141,16 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: AppBottomNavigationBar(
+        currentIndex: 0,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.eventList);
+          } else if (index == 2) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
+          }
+        },
       ),
     );
   }

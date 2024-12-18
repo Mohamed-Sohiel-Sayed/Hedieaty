@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/gift.dart';
 import '../../../controllers/gift_controller.dart';
-import '../../gift_details/gift_details_page.dart';
+import '../../../routes.dart';
 
 class GiftListItem extends StatelessWidget {
   final Gift gift;
@@ -46,10 +46,9 @@ class GiftListItem extends StatelessWidget {
         ],
       ),
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => GiftDetailsPage(gift: gift),
-          ),
+        Navigator.of(context).pushNamed(
+          AppRoutes.giftDetails,
+          arguments: gift,
         );
       },
     );

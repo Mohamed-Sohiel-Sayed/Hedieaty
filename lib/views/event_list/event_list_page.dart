@@ -5,6 +5,8 @@ import '../../models/event.dart';
 import '../../services/auth_service.dart';
 import 'widgets/event_list_item.dart';
 import 'widgets/event_form.dart';
+import '../../shared/widgets/bottom_navigation_bar.dart';
+import '../../routes.dart';
 
 class EventListPage extends StatefulWidget {
   @override
@@ -121,6 +123,16 @@ class _EventListPageState extends State<EventListPage> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: AppBottomNavigationBar(
+        currentIndex: 1,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+          } else if (index == 2) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
+          }
+        },
       ),
     );
   }

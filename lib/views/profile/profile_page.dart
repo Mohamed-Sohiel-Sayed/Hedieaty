@@ -7,9 +7,8 @@ import '../../models/event.dart';
 import '../../models/gift.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
-import '../pledged_gifts/pledged_gifts_page.dart';
-import '../gift_list/gift_list_page.dart';
-import '../gift_details/gift_details_page.dart';
+import '../../shared/widgets/bottom_navigation_bar.dart';
+import '../../routes.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -99,46 +98,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _updateNotificationSettings() {
-    // Implement notification settings update logic
-    showDialog(
-      context: context,
-      builder: (context) {
-        TextEditingController notificationSettingsController = TextEditingController(text: _user?.preferences.join(', '));
-        return AlertDialog(
-          title: Text('Update Notification Settings'),
-          content: TextField(
-            controller: notificationSettingsController,
-            decoration: InputDecoration(labelText: 'Notification Settings'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (_user != null) {
-                  User updatedUser = _user!.copyWith(
-                    preferences: notificationSettingsController.text.split(',').map((e) => e.trim()).toList(),
-                  );
-                  await _profileController.updateUser(updatedUser);
-                  setState(() {
-                    _user = updatedUser;
-                  });
-                  Navigator.of(context).pop();
-                }
-              },
-              child: Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -149,7 +108,7 @@ class _ProfilePageState extends State<ProfilePage> {
             icon: Icon(Icons.logout),
             onPressed: () async {
               await _authService.signOut();
-              Navigator.of(context).pushReplacementNamed('/sign_in');
+              Navigator.of(context).pushReplacementNamed(AppRoutes.signIn);
             },
           ),
         ],
@@ -170,13 +129,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 trailing: IconButton(
                   icon: Icon(Icons.edit),
                   onPressed: _updateProfile,
-                ),
-              ),
-              ListTile(
-                title: Text('Notification Settings'),
-                trailing: IconButton(
-                  icon: Icon(Icons.settings),
-                  onPressed: _updateNotificationSettings,
                 ),
               ),
               SizedBox(height: 20),
@@ -204,10 +156,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           title: Text(events[index].name),
                           subtitle: Text(events[index].date),
                           onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => GiftListPage(eventId: events[index].id),
-                              ),
+                            Navigator.of(context).pushNamed(
+                              AppRoutes.giftList,
+                              arguments: events[index].id,
                             );
                           },
                         );
@@ -241,10 +192,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           title: Text(gifts[index].name),
                           subtitle: Text(gifts[index].category),
                           onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => GiftDetailsPage(gift: gifts[index]),
-                              ),
+                            Navigator.of(context).pushNamed(
+                              AppRoutes.giftDetails,
+                              arguments: gifts[index],
                             );
                           },
                         );
@@ -256,17 +206,23 @@ class _ProfilePageState extends State<ProfilePage> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => PledgedGiftsPage(),
-                    ),
-                  );
+                  Navigator.of(context).pushNamed(AppRoutes.myPledgedGifts);
                 },
                 child: Text('My Pledged Gifts'),
               ),
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: AppBottomNavigationBar(
+        currentIndex: 2,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+          } else if (index == 1) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.eventList);
+          }
+        },
       ),
     );
   }

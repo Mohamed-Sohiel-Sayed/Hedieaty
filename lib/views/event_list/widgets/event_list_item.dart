@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/event.dart';
 import '../../../controllers/event_controller.dart';
-import '../../gift_list/gift_list_page.dart';
+import '../../../routes.dart';
 
 class EventListItem extends StatelessWidget {
   final Event event;
@@ -43,10 +43,9 @@ class EventListItem extends StatelessWidget {
         ],
       ),
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => GiftListPage(eventId: event.id),
-          ),
+        Navigator.of(context).pushNamed(
+          AppRoutes.giftList,
+          arguments: event.id,
         );
       },
     );
