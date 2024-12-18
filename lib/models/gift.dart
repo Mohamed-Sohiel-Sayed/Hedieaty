@@ -6,10 +6,10 @@ class Gift {
   final String description;
   final String category;
   final double price;
+  final String imageUrl;
   final String status;
   final String eventId;
   final bool isPledged;
-  final String imageUrl;
 
   Gift({
     required this.id,
@@ -17,10 +17,10 @@ class Gift {
     required this.description,
     required this.category,
     required this.price,
+    required this.imageUrl,
     required this.status,
     required this.eventId,
     required this.isPledged,
-    required this.imageUrl,
   });
 
   factory Gift.fromFirestore(DocumentSnapshot doc) {
@@ -31,10 +31,10 @@ class Gift {
       description: data['description'] ?? '',
       category: data['category'] ?? '',
       price: data['price']?.toDouble() ?? 0.0,
+      imageUrl: data['imageUrl'] ?? '',
       status: data['status'] ?? '',
       eventId: data['eventId'] ?? '',
       isPledged: data['isPledged'] ?? false,
-      imageUrl: data['imageUrl'] ?? '',
     );
   }
 
@@ -45,10 +45,10 @@ class Gift {
       'description': description,
       'category': category,
       'price': price,
+      'imageUrl': imageUrl,
       'status': status,
       'eventId': eventId,
       'isPledged': isPledged,
-      'imageUrl': imageUrl,
     };
   }
 
@@ -58,10 +58,10 @@ class Gift {
     String? description,
     String? category,
     double? price,
+    String? imageUrl,
     String? status,
     String? eventId,
     bool? isPledged,
-    String? imageUrl,
   }) {
     return Gift(
       id: id ?? this.id,
@@ -69,10 +69,10 @@ class Gift {
       description: description ?? this.description,
       category: category ?? this.category,
       price: price ?? this.price,
+      imageUrl: imageUrl ?? this.imageUrl,
       status: status ?? this.status,
       eventId: eventId ?? this.eventId,
       isPledged: isPledged ?? this.isPledged,
-      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 }
