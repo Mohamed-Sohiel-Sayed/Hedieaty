@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../models/event.dart';
+import '../../../controllers/event_controller.dart';
 
 class EventListItem extends StatelessWidget {
   final Event event;
+  final EventController _controller = EventController();
+  final VoidCallback onEdit;
 
-  EventListItem({required this.event});
+  EventListItem({required this.event, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -16,14 +19,12 @@ class EventListItem extends StatelessWidget {
         children: [
           IconButton(
             icon: Icon(Icons.edit),
-            onPressed: () {
-              // Navigate to edit event page
-            },
+            onPressed: onEdit,
           ),
           IconButton(
             icon: Icon(Icons.delete),
-            onPressed: () {
-              // Delete event
+            onPressed: () async {
+              await _controller.deleteEvent(event.id);
             },
           ),
         ],
