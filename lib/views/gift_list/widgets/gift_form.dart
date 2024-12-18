@@ -9,8 +9,9 @@ import '../../../services/auth_service.dart';
 class GiftForm extends StatefulWidget {
   final Gift? gift;
   final Function(Gift) onSave;
+  final String eventId;
 
-  GiftForm({this.gift, required this.onSave});
+  GiftForm({this.gift, required this.onSave, required this.eventId});
 
   @override
   _GiftFormState createState() => _GiftFormState();
@@ -124,7 +125,7 @@ class _GiftFormState extends State<GiftForm> {
                           price: double.parse(_priceController.text),
                           imageUrl: '', // Handle image upload separately
                           status: 'available',
-                          eventId: '', // Set the eventId appropriately
+                          eventId: widget.eventId, // Set the eventId appropriately
                           isPledged: false,
                         );
                         await _controller.addGift(gift);
