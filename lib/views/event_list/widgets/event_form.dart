@@ -34,91 +34,98 @@ class _EventFormState extends State<EventForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a name';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _dateController,
-              decoration: InputDecoration(labelText: 'Date'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a date';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _locationController,
-              decoration: InputDecoration(labelText: 'Location'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a location';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a description';
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  firebase_auth.User? currentUser = _authService.getCurrentUser();
-                  if (currentUser != null) {
-                    if (widget.event == null) {
-                      // Add new event
-                      Event event = Event(
-                        id: '', // Temporary ID, will be replaced by Firestore
-                        name: _nameController.text,
-                        date: _dateController.text,
-                        location: _locationController.text,
-                        description: _descriptionController.text,
-                        userId: currentUser.uid,
-                      );
-                      await _controller.addEvent(event);
-                      widget.onSave(event);
-                    } else {
-                      // Update existing event
-                      Event updatedEvent = Event(
-                        id: widget.event!.id,
-                        name: _nameController.text,
-                        date: _dateController.text,
-                        location: _locationController.text,
-                        description: _descriptionController.text,
-                        userId: widget.event!.userId,
-                      );
-                      await _controller.updateEvent(updatedEvent);
-                      widget.onSave(updatedEvent);
-                    }
-                    Navigator.of(context).pop();
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16.0,
+          right: 16.0,
+          top: 16.0,
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a name';
                   }
-                }
-              },
-              child: Text(widget.event == null ? 'Add Event' : 'Update Event'),
-            ),
-          ],
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _dateController,
+                decoration: InputDecoration(labelText: 'Date'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a date';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _locationController,
+                decoration: InputDecoration(labelText: 'Location'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a location';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: InputDecoration(labelText: 'Description'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a description';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    firebase_auth.User? currentUser = _authService.getCurrentUser();
+                    if (currentUser != null) {
+                      if (widget.event == null) {
+                        // Add new event
+                        Event event = Event(
+                          id: '', // Temporary ID, will be replaced by Firestore
+                          name: _nameController.text,
+                          date: _dateController.text,
+                          location: _locationController.text,
+                          description: _descriptionController.text,
+                          userId: currentUser.uid,
+                        );
+                        await _controller.addEvent(event);
+                        widget.onSave(event);
+                      } else {
+                        // Update existing event
+                        Event updatedEvent = Event(
+                          id: widget.event!.id,
+                          name: _nameController.text,
+                          date: _dateController.text,
+                          location: _locationController.text,
+                          description: _descriptionController.text,
+                          userId: widget.event!.userId,
+                        );
+                        await _controller.updateEvent(updatedEvent);
+                        widget.onSave(updatedEvent);
+                      }
+                      Navigator.of(context).pop();
+                    }
+                  }
+                },
+                child: Text(widget.event == null ? 'Add Event' : 'Update Event'),
+              ),
+            ],
+          ),
         ),
       ),
     );
