@@ -53,22 +53,10 @@ class _EventListPageState extends State<EventListPage> {
         events.sort((a, b) => a.date.compareTo(b.date));
         break;
       case 'status':
-        events.sort((a, b) => _getStatus(a).compareTo(_getStatus(b)));
+        events.sort((a, b) => a.getStatus().compareTo(b.getStatus()));
         break;
     }
     return events;
-  }
-
-  String _getStatus(Event event) {
-    DateTime eventDate = DateTime.parse(event.date);
-    DateTime now = DateTime.now();
-    if (eventDate.isBefore(now)) {
-      return 'Past';
-    } else if (eventDate.isAfter(now)) {
-      return 'Upcoming';
-    } else {
-      return 'Current';
-    }
   }
 
   @override
