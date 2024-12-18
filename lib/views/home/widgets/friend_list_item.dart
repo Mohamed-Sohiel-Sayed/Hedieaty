@@ -3,8 +3,9 @@ import '../../../models/user.dart';
 
 class FriendListItem extends StatelessWidget {
   final User friend;
-
-  FriendListItem({required this.friend});
+  final String subtitle;
+  final VoidCallback onTap;
+  FriendListItem({required this.friend, required this.subtitle, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +16,9 @@ class FriendListItem extends StatelessWidget {
             : AssetImage('assets/placeholder.png') as ImageProvider,
       ),
       title: Text(friend.name),
-      subtitle: Text('Upcoming Events: ${friend.preferences.length}'), // Replace with actual logic
+      subtitle: Text(subtitle),
       trailing: Icon(Icons.arrow_forward),
-      onTap: () {
-        // Navigate to friend's gift lists
-      },
+      onTap: onTap,
     );
   }
 }
