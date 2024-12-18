@@ -13,7 +13,19 @@ class EventListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(event.name),
-      subtitle: Text('${event.date} - ${event.location}'),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${event.date} - ${event.location}'),
+          Text(
+            'Status: ${event.getStatus()}',
+            style: TextStyle(
+              color: _getStatusColor(event.getStatus()),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -33,5 +45,18 @@ class EventListItem extends StatelessWidget {
         // Navigate to event details or gift list page
       },
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Past':
+        return Colors.red;
+      case 'Current':
+        return Colors.orange;
+      case 'Upcoming':
+        return Colors.green;
+      default:
+        return Colors.black;
+    }
   }
 }
