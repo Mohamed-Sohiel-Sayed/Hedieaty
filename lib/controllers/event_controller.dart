@@ -5,7 +5,9 @@ class EventController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> addEvent(Event event) async {
-    await _firestore.collection('events').doc(event.id).set(event.toMap());
+    DocumentReference docRef = _firestore.collection('events').doc();
+    event = event.copyWith(id: docRef.id);
+    await docRef.set(event.toMap());
   }
 
   Future<void> updateEvent(Event event) async {
