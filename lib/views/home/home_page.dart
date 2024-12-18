@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../controllers/home_controller.dart';
 import '../../models/user.dart';
+import '../../routes.dart';
 import '../../services/auth_service.dart';
 import 'widgets/friend_list_item.dart';
 
@@ -32,6 +33,15 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Home Page'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await _authService.signOut();
+              Navigator.of(context).pushReplacementNamed(AppRoutes.signIn);
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
