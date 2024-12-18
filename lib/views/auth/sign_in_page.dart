@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../controllers/auth_controller.dart';
 import '../../utils/validators.dart';
+import '../../routes.dart';
 
 class SignInPage extends StatefulWidget {
   @override
@@ -41,9 +42,16 @@ class _SignInPageState extends State<SignInPage> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     await _authController.signIn(_emailController.text, _passwordController.text);
+                    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
                   }
                 },
                 child: Text('Sign In'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed(AppRoutes.signUp);
+                },
+                child: Text('Don\'t have an account? Sign Up'),
               ),
             ],
           ),
