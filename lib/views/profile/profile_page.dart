@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../controllers/event_controller.dart';
 import '../../controllers/gift_controller.dart';
+import '../../controllers/profile_controller.dart';
 import '../../models/event.dart';
 import '../../models/gift.dart';
+import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import '../pledged_gifts/pledged_gifts_page.dart';
 import '../gift_list/gift_list_page.dart';
@@ -18,9 +20,11 @@ class _ProfilePageState extends State<ProfilePage> {
   final AuthService _authService = AuthService();
   final EventController _eventController = EventController();
   final GiftController _giftController = GiftController();
+  final ProfileController _profileController = ProfileController();
   late Stream<List<Event>> _eventsStream;
   late Stream<List<Gift>> _giftsStream;
   late firebase_auth.User? _currentUser;
+  User? _user;
 
   @override
   void initState() {
@@ -29,6 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (_currentUser != null) {
       _eventsStream = _eventController.getEvents(_currentUser!.uid);
       _giftsStream = _giftController.getGiftsByUser(_currentUser!.uid);
+      _fetchUserProfile();
     } else {
       // Handle the case where the user is not signed in
       _eventsStream = Stream.error('User not signed in');
@@ -36,12 +41,102 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _fetchUserProfile() async {
+    User? user = await _profileController.getUser(_currentUser!.uid);
+    setState(() {
+      _user = user;
+    });
+  }
+
   void _updateProfile() {
     // Implement profile update logic
+    showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController nameController = TextEditingController(text: _user?.name);
+        TextEditingController emailController = TextEditingController(text: _user?.email);
+        return AlertDialog(
+          title: Text('Update Profile'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (_user != null) {
+                  User updatedUser = _user!.copyWith(
+                    name: nameController.text,
+                    email: emailController.text,
+                  );
+                  await _profileController.updateUser(updatedUser);
+                  setState(() {
+                    _user = updatedUser;
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _updateNotificationSettings() {
     // Implement notification settings update logic
+    showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController notificationSettingsController = TextEditingController(text: _user?.preferences.join(', '));
+        return AlertDialog(
+          title: Text('Update Notification Settings'),
+          content: TextField(
+            controller: notificationSettingsController,
+            decoration: InputDecoration(labelText: 'Notification Settings'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (_user != null) {
+                  User updatedUser = _user!.copyWith(
+                    preferences: notificationSettingsController.text.split(',').map((e) => e.trim()).toList(),
+                  );
+                  await _profileController.updateUser(updatedUser);
+                  setState(() {
+                    _user = updatedUser;
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -70,8 +165,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               ListTile(
-                title: Text(_currentUser?.displayName ?? 'No Name'),
-                subtitle: Text(_currentUser?.email ?? 'No Email'),
+                title: Text(_user?.name ?? 'No Name'),
+                subtitle: Text(_user?.email ?? 'No Email'),
                 trailing: IconButton(
                   icon: Icon(Icons.edit),
                   onPressed: _updateProfile,
