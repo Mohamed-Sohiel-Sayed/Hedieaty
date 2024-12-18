@@ -43,6 +43,7 @@ class _GiftListPageState extends State<GiftListPage> {
           onSave: (Gift savedGift) {
             setState(() {});
           },
+          eventId: widget.eventId, // Pass the eventId to the GiftForm
         );
       },
     );
