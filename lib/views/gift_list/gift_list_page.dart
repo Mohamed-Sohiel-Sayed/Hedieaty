@@ -1,0 +1,133 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import '../../controllers/gift_controller.dart';
+import '../../models/gift.dart';
+import '../../services/auth_service.dart';
+import 'widgets/gift_list_item.dart';
+import 'widgets/gift_form.dart';
+
+class GiftListPage extends StatefulWidget {
+  final String eventId;
+
+  GiftListPage({required this.eventId});
+
+  @override
+  _GiftListPageState createState() => _GiftListPageState();
+}
+
+class _GiftListPageState extends State<GiftListPage> {
+  final GiftController _controller = GiftController();
+  final AuthService _authService = AuthService();
+  late Stream<List<Gift>> _giftsStream;
+  String _sortCriteria = 'name';
+
+  @override
+  void initState() {
+    super.initState();
+    firebase_auth.User? currentUser = _authService.getCurrentUser();
+    if (currentUser != null) {
+      _giftsStream = _controller.getGifts(widget.eventId);
+    } else {
+      // Handle the case where the user is not signed in
+      _giftsStream = Stream.error('User not signed in');
+    }
+  }
+
+  void _showGiftForm({Gift? gift}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return GiftForm(
+          gift: gift,
+          onSave: (Gift savedGift) {
+            setState(() {});
+          },
+        );
+      },
+    );
+  }
+
+  List<Gift> _sortGifts(List<Gift> gifts) {
+    switch (_sortCriteria) {
+      case 'name':
+        gifts.sort((a, b) => a.name.compareTo(b.name));
+        break;
+      case 'category':
+        gifts.sort((a, b) => a.category.compareTo(b.category));
+        break;
+      case 'status':
+        gifts.sort((a, b) => a.status.compareTo(b.status));
+        break;
+    }
+    return gifts;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Gift List'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              _showGiftForm();
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: DropdownButton<String>(
+              value: _sortCriteria,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _sortCriteria = newValue!;
+                });
+              },
+              items: <String>['name', 'category', 'status']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text('Sort by $value'),
+                );
+              }).toList(),
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<List<Gift>>(
+              stream: _giftsStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text('No gifts found'));
+                } else {
+                  List<Gift> gifts = _sortGifts(snapshot.data!);
+                  return ListView.builder(
+                    itemCount: gifts.length,
+                    itemBuilder: (context, index) {
+                      return GiftListItem(
+                        gift: gifts[index],
+                        onEdit: () {
+                          if (!gifts[index].isPledged) {
+                            _showGiftForm(gift: gifts[index]);
+                          }
+                        },
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
