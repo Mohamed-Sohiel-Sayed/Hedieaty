@@ -11,13 +11,14 @@ class HomeController {
       throw Exception('User document does not exist');
     }
 
-    List<dynamic> friendsIds = userDoc['friends'] ?? [];
+    List<String> friendsIds = List<String>.from(userDoc['friends'] ?? []);
 
     List<User> friends = [];
     for (String friendId in friendsIds) {
       DocumentSnapshot friendDoc = await _firestore.collection('users').doc(friendId).get();
       if (friendDoc.exists) {
         friends.add(User.fromFirestore(friendDoc));
+      } else {
       }
     }
     return friends;
