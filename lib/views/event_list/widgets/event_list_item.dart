@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/event.dart';
 import '../../../controllers/event_controller.dart';
+import '../../gift_list/gift_list_page.dart';
 
 class EventListItem extends StatelessWidget {
   final Event event;
@@ -42,7 +43,11 @@ class EventListItem extends StatelessWidget {
         ],
       ),
       onTap: () {
-        // Navigate to event details or gift list page
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => GiftListPage(eventId: event.id),
+          ),
+        );
       },
     );
   }
