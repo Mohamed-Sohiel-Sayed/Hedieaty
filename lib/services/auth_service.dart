@@ -1,7 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'cloud_service.dart';
+import '../models/user.dart' as app_user;
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final CloudService _cloudService = CloudService();
 
   Future<User?> signInWithEmailAndPassword(String email, String password) async {
     try {
@@ -13,10 +16,23 @@ class AuthService {
     }
   }
 
-  Future<User?> registerWithEmailAndPassword(String email, String password) async {
+  Future<User?> registerWithEmailAndPassword(String email, String password, String name) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      return result.user;
+      User? user = result.user;
+      if (user != null) {
+        String userId = '${name}Id';
+        app_user.User newUser = app_user.User(
+          id: userId,
+          name: name,
+          email: user.email!,
+          profilePictureUrl: '',
+          preferences: [],
+          friends: [],
+        );
+        await _cloudService.createUserDocument(newUser);
+      }
+      return user;
     } catch (e) {
       print(e.toString());
       return null;
