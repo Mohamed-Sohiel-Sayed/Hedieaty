@@ -20,6 +20,22 @@ class GiftController {
 
   Stream<List<Gift>> getGifts(String eventId) {
     return _firestore.collection('gifts').where('eventId', isEqualTo: eventId).snapshots().map((snapshot) {
+      //print('Fetched ${snapshot.docs.length} gifts from Firestore');
+      return snapshot.docs.map((doc) {
+        //print('Gift data: ${doc.data()}');
+        return Gift.fromFirestore(doc);
+      }).toList();
+    });
+  }
+
+  Stream<List<Gift>> getGiftsByUser(String userId) {
+    return _firestore.collection('gifts').where('userId', isEqualTo: userId).snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => Gift.fromFirestore(doc)).toList();
+    });
+  }
+
+  Stream<List<Gift>> getPledgedGifts(String userId) {
+    return _firestore.collection('gifts').where('isPledged', isEqualTo: true).where('userId', isEqualTo: userId).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) => Gift.fromFirestore(doc)).toList();
     });
   }
