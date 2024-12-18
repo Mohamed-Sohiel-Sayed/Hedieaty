@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../controllers/home_controller.dart';
+import '../../controllers/event_controller.dart';
 import '../../models/user.dart';
 import '../../routes.dart';
 import '../../services/auth_service.dart';
+import '../gift_list/gift_list_page.dart';
 import 'widgets/friend_list_item.dart';
+import '../event_list/event_list_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -13,6 +16,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final HomeController _controller = HomeController();
+  final EventController _eventController = EventController();
   final AuthService _authService = AuthService();
   late Future<List<User>> _friendsFuture;
 
@@ -28,12 +32,36 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _addFriend() {
+    // Implement add friend logic
+  }
+
+  void _searchFriends() {
+    // Implement search friends logic
+  }
+
+  void _createEventOrList() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EventListPage(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Home Page'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: _searchFriends,
+          ),
+          IconButton(
+            icon: Icon(Icons.person_add),
+            onPressed: _addFriend,
+          ),
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
@@ -48,9 +76,7 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
-              onPressed: () {
-                // Navigate to create event/list page
-              },
+              onPressed: _createEventOrList,
               child: Text('Create Your Own Event/List'),
             ),
           ),
@@ -69,7 +95,51 @@ class _HomePageState extends State<HomePage> {
                   return ListView.builder(
                     itemCount: friends.length,
                     itemBuilder: (context, index) {
-                      return FriendListItem(friend: friends[index]);
+                      return FutureBuilder<int>(
+                        future: _eventController.getUpcomingEventsCount(friends[index].id),
+                        builder: (context, eventSnapshot) {
+                          if (eventSnapshot.connectionState == ConnectionState.waiting) {
+                            return FriendListItem(
+                              friend: friends[index],
+                              subtitle: 'Loading upcoming events...',
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => GiftListPage(eventId: friends[index].id),
+                                  ),
+                                );
+                              },
+                            );
+                          } else if (eventSnapshot.hasError) {
+                            return FriendListItem(
+                              friend: friends[index],
+                              subtitle: 'Error loading events',
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => GiftListPage(eventId: friends[index].id),
+                                  ),
+                                );
+                              },
+                            );
+                          } else {
+                            int upcomingEventsCount = eventSnapshot.data ?? 0;
+                            return FriendListItem(
+                              friend: friends[index],
+                              subtitle: upcomingEventsCount > 0
+                                  ? 'Upcoming Events: $upcomingEventsCount'
+                                  : 'No Upcoming Events',
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => GiftListPage(eventId: friends[index].id),
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                        },
+                      );
                     },
                   );
                 }
