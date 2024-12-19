@@ -26,4 +26,15 @@ class Validators {
     }
     return null;
   }
+
+  static String? validateMobile(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Mobile number is required';
+    }
+    final RegExp mobileRegex = RegExp(r'^\+?[0-9]{10,15}$');
+    if (!mobileRegex.hasMatch(value)) {
+      return 'Enter a valid mobile number';
+    }
+    return null;
+  }
 }
