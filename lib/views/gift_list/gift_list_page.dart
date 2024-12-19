@@ -8,6 +8,7 @@ import '../../shared/widgets/refreshable widget.dart';
 import 'widgets/gift_list_item.dart';
 import 'widgets/gift_form.dart';
 import '../../shared/widgets/flashy_bottom_navigation_bar.dart';
+import '../../shared/widgets/custom_widgets.dart';
 
 class GiftListPage extends StatefulWidget {
   final String eventId;
@@ -114,9 +115,18 @@ class _GiftListPageState extends State<GiftListPage> {
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text('Sort by $value'),
+                    child: Text(
+                      'Sort by $value',
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
+                    ),
                   );
                 }).toList(),
+                dropdownColor: Theme.of(context).scaffoldBackgroundColor,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
               ),
             ),
             Expanded(
@@ -124,11 +134,11 @@ class _GiftListPageState extends State<GiftListPage> {
                 stream: _giftsStream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(child: CustomLoadingIndicator());
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No gifts found'));
+                    return Center(child: CustomText(text: 'No gifts found'));
                   } else {
                     List<Gift> gifts = _sortGifts(snapshot.data!);
                     return ListView.builder(

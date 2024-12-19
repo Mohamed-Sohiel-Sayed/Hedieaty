@@ -26,8 +26,7 @@ class AuthService {
           name: name,
           email: user.email!,
           profilePictureUrl: '',
-          preferences: [],
-          friends: [],
+          friends: [], mobile: '',
         );
         await _cloudService.createUserDocument(newUser);
       }

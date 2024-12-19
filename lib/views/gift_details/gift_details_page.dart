@@ -6,6 +6,7 @@ import '../../controllers/gift_controller.dart';
 import '../../models/gift.dart';
 import '../../services/auth_service.dart';
 import '../../shared/widgets/refreshable widget.dart';
+import '../../shared/widgets/custom_widgets.dart';
 
 class GiftDetailsPage extends StatefulWidget {
   final Gift gift;
@@ -74,9 +75,9 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
             key: _formKey,
             child: Column(
               children: [
-                TextFormField(
+                AuthTextField(
                   controller: _nameController,
-                  decoration: InputDecoration(labelText: 'Name'),
+                  labelText: 'Name',
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a name';
@@ -85,9 +86,9 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                   },
                   enabled: _isCurrentUser && !_isPledged,
                 ),
-                TextFormField(
+                AuthTextField(
                   controller: _descriptionController,
-                  decoration: InputDecoration(labelText: 'Description'),
+                  labelText: 'Description',
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a description';
@@ -96,9 +97,9 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                   },
                   enabled: _isCurrentUser && !_isPledged,
                 ),
-                TextFormField(
+                AuthTextField(
                   controller: _categoryController,
-                  decoration: InputDecoration(labelText: 'Category'),
+                  labelText: 'Category',
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a category';
@@ -107,9 +108,9 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                   },
                   enabled: _isCurrentUser && !_isPledged,
                 ),
-                TextFormField(
+                AuthTextField(
                   controller: _priceController,
-                  decoration: InputDecoration(labelText: 'Price'),
+                  labelText: 'Price',
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -122,15 +123,15 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                 SizedBox(height: 20),
                 if (_isCurrentUser) ...[
                   _image == null
-                      ? Text('No image selected.')
+                      ? CustomText(text: 'No image selected.')
                       : Image.file(_image!),
-                  ElevatedButton(
+                  AuthButton(
+                    text: 'Upload Image',
                     onPressed: _pickImage,
-                    child: Text('Upload Image'),
                   ),
                   SizedBox(height: 20),
                   SwitchListTile(
-                    title: Text('Pledged'),
+                    title: CustomText(text: 'Pledged'),
                     value: _isPledged,
                     onChanged: (bool value) {
                       if (!_isPledged) {
@@ -141,7 +142,8 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                     },
                   ),
                   SizedBox(height: 20),
-                  ElevatedButton(
+                  AuthButton(
+                    text: 'Save',
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         firebase_auth.User? currentUser = _authService.getCurrentUser();
@@ -163,7 +165,6 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                         }
                       }
                     },
-                    child: Text('Save'),
                   ),
                 ],
               ],

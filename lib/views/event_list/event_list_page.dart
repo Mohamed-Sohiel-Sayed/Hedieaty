@@ -7,6 +7,7 @@ import '../../shared/widgets/refreshable widget.dart';
 import 'widgets/event_list_item.dart';
 import 'widgets/event_form.dart';
 import '../../shared/widgets/flashy_bottom_navigation_bar.dart';
+import '../../shared/widgets/custom_widgets.dart';
 import '../../routes.dart';
 
 class EventListPage extends StatefulWidget {
@@ -111,9 +112,18 @@ class _EventListPageState extends State<EventListPage> {
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text('Sort by $value'),
+                    child: Text(
+                      'Sort by $value',
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
+                    ),
                   );
                 }).toList(),
+                dropdownColor: Theme.of(context).scaffoldBackgroundColor,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
               ),
             ),
             Expanded(
@@ -121,11 +131,11 @@ class _EventListPageState extends State<EventListPage> {
                 stream: _eventsStream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(child: CustomLoadingIndicator());
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No events found'));
+                    return Center(child: CustomText(text: 'No events found'));
                   } else {
                     List<Event> events = _sortEvents(snapshot.data!);
                     return ListView.builder(

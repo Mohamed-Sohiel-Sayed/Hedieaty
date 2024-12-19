@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'routes.dart';
 import 'views/auth/sign_in_page.dart';
 import 'views/home/home_page.dart';
+import 'utils/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,9 +17,9 @@ class HedieatyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Hedieaty',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system, // Automatically switch based on system settings
       home: AuthWrapper(),
       onGenerateRoute: AppRoutes.generateRoute,
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../controllers/auth_controller.dart';
+import '../../shared/widgets/custom_widgets.dart';
 import '../../utils/validators.dart';
 import '../../routes.dart';
 
@@ -26,32 +27,35 @@ class _SignInPageState extends State<SignInPage> {
           key: _formKey,
           child: Column(
             children: [
-              TextFormField(
+              AuthTextField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                labelText: 'Email',
                 validator: Validators.validateEmail,
               ),
-              TextFormField(
+              AuthTextField(
                 controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                labelText: 'Password',
                 obscureText: true,
                 validator: Validators.validatePassword,
               ),
               SizedBox(height: 20),
-              ElevatedButton(
+              AuthButton(
+                text: 'Sign In',
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
-                    await _authController.signIn(_emailController.text, _passwordController.text);
+                    await _authController.signIn(
+                      _emailController.text,
+                      _passwordController.text,
+                    );
                     Navigator.of(context).pushReplacementNamed(AppRoutes.home);
                   }
                 },
-                child: Text('Sign In'),
               ),
-              TextButton(
+              AuthTextButton(
+                text: 'Don\'t have an account? Sign Up',
                 onPressed: () {
                   Navigator.of(context).pushReplacementNamed(AppRoutes.signUp);
                 },
-                child: Text('Don\'t have an account? Sign Up'),
               ),
             ],
           ),

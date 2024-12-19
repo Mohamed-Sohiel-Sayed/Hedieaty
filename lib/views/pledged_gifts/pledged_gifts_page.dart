@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../controllers/gift_controller.dart';
 import '../../models/gift.dart';
 import '../../services/auth_service.dart';
+import '../../shared/widgets/custom_widgets.dart';
 
 class PledgedGiftsPage extends StatefulWidget {
   @override
@@ -36,19 +37,19 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
         stream: _pledgedGiftsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: CustomLoadingIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No pledged gifts found'));
+            return Center(child: CustomText(text: 'No pledged gifts found'));
           } else {
             List<Gift> gifts = snapshot.data!;
             return ListView.builder(
               itemCount: gifts.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(gifts[index].name),
-                  subtitle: Text(gifts[index].category),
+                  title: CustomText(text: gifts[index].name),
+                  subtitle: CustomText(text: gifts[index].category),
                   trailing: IconButton(
                     icon: Icon(Icons.edit),
                     onPressed: () {

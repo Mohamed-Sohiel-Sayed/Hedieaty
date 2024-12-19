@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/event.dart';
 import '../../../controllers/event_controller.dart';
 import '../../../routes.dart';
+import '../../../shared/widgets/custom_widgets.dart';
 
 class EventListItem extends StatelessWidget {
   final Event event;
@@ -13,16 +14,16 @@ class EventListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(event.name),
+      title: CustomText(text: event.name),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('${event.date} - ${event.location}'),
-          Text(
-            'Status: ${event.getStatus()}',
+          CustomText(text: '${event.date} - ${event.location}'),
+          CustomText(
+            text: 'Status: ${event.getStatus()}',
+            fontWeight: FontWeight.bold,
             style: TextStyle(
               color: _getStatusColor(event.getStatus()),
-              fontWeight: FontWeight.bold,
             ),
           ),
         ],

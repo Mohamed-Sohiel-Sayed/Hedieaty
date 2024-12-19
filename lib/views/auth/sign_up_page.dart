@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../controllers/auth_controller.dart';
+import '../../shared/widgets/custom_widgets.dart';
 import '../../utils/validators.dart';
 import '../../routes.dart';
 
@@ -27,37 +28,41 @@ class _SignUpPageState extends State<SignUpPage> {
           key: _formKey,
           child: Column(
             children: [
-              TextFormField(
+              AuthTextField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                labelText: 'Name',
                 validator: Validators.validateName,
               ),
-              TextFormField(
+              AuthTextField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                labelText: 'Email',
                 validator: Validators.validateEmail,
               ),
-              TextFormField(
+              AuthTextField(
                 controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                labelText: 'Password',
                 obscureText: true,
                 validator: Validators.validatePassword,
               ),
               SizedBox(height: 20),
-              ElevatedButton(
+              AuthButton(
+                text: 'Sign Up',
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
-                    await _authController.register(_emailController.text, _passwordController.text, _nameController.text);
-                    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+                    await _authController.register(
+                      _emailController.text,
+                      _passwordController.text,
+                      _nameController.text,
+                    );
+                    Navigator.of(context).pushReplacementNamed(AppRoutes.signIn);
                   }
                 },
-                child: Text('Sign Up'),
               ),
-              TextButton(
+              AuthTextButton(
+                text: 'Already have an account? Sign In',
                 onPressed: () {
                   Navigator.of(context).pushReplacementNamed(AppRoutes.signIn);
                 },
-                child: Text('Already have an account? Sign In'),
               ),
             ],
           ),

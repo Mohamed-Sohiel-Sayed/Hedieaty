@@ -5,12 +5,13 @@ import 'dart:io';
 import '../../../controllers/gift_controller.dart';
 import '../../../models/gift.dart';
 import '../../../services/auth_service.dart';
+import '../../../shared/widgets/custom_widgets.dart';
 
 class GiftForm extends StatefulWidget {
   final Gift? gift;
   final Function(Gift) onSave;
   final String eventId;
-  final String userId; // Add this parameter
+  final String userId;
 
   GiftForm({this.gift, required this.onSave, required this.eventId, required this.userId});
 
@@ -61,9 +62,9 @@ class _GiftFormState extends State<GiftForm> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextFormField(
+              AuthTextField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                labelText: 'Name',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a name';
@@ -71,9 +72,9 @@ class _GiftFormState extends State<GiftForm> {
                   return null;
                 },
               ),
-              TextFormField(
+              AuthTextField(
                 controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
+                labelText: 'Description',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a description';
@@ -81,9 +82,9 @@ class _GiftFormState extends State<GiftForm> {
                   return null;
                 },
               ),
-              TextFormField(
+              AuthTextField(
                 controller: _categoryController,
-                decoration: InputDecoration(labelText: 'Category'),
+                labelText: 'Category',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a category';
@@ -91,9 +92,9 @@ class _GiftFormState extends State<GiftForm> {
                   return null;
                 },
               ),
-              TextFormField(
+              AuthTextField(
                 controller: _priceController,
-                decoration: InputDecoration(labelText: 'Price'),
+                labelText: 'Price',
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -104,14 +105,15 @@ class _GiftFormState extends State<GiftForm> {
               ),
               SizedBox(height: 20),
               _image == null
-                  ? Text('No image selected.')
+                  ? CustomText(text: 'No image selected.')
                   : Image.file(_image!),
-              ElevatedButton(
+              AuthButton(
+                text: 'Upload Image',
                 onPressed: _pickImage,
-                child: Text('Upload Image'),
               ),
               SizedBox(height: 20),
-              ElevatedButton(
+              AuthButton(
+                text: widget.gift == null ? 'Add Gift' : 'Update Gift',
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     firebase_auth.User? currentUser = _authService.getCurrentUser();
@@ -153,7 +155,6 @@ class _GiftFormState extends State<GiftForm> {
                     }
                   }
                 },
-                child: Text(widget.gift == null ? 'Add Gift' : 'Update Gift'),
               ),
             ],
           ),

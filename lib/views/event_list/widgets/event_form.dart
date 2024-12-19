@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../controllers/event_controller.dart';
 import '../../../models/event.dart';
 import '../../../services/auth_service.dart';
+import '../../../shared/widgets/custom_widgets.dart';
 
 class EventForm extends StatefulWidget {
   final Event? event;
@@ -67,9 +68,9 @@ class _EventFormState extends State<EventForm> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextFormField(
+              AuthTextField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                labelText: 'Name',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a name';
@@ -77,9 +78,9 @@ class _EventFormState extends State<EventForm> {
                   return null;
                 },
               ),
-              TextFormField(
+              AuthTextField(
                 controller: _dateController,
-                decoration: InputDecoration(labelText: 'Date'),
+                labelText: 'Date',
                 readOnly: true,
                 onTap: () => _selectDate(context),
                 validator: (value) {
@@ -89,9 +90,9 @@ class _EventFormState extends State<EventForm> {
                   return null;
                 },
               ),
-              TextFormField(
+              AuthTextField(
                 controller: _locationController,
-                decoration: InputDecoration(labelText: 'Location'),
+                labelText: 'Location',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a location';
@@ -99,9 +100,9 @@ class _EventFormState extends State<EventForm> {
                   return null;
                 },
               ),
-              TextFormField(
+              AuthTextField(
                 controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
+                labelText: 'Description',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a description';
@@ -110,7 +111,8 @@ class _EventFormState extends State<EventForm> {
                 },
               ),
               SizedBox(height: 20),
-              ElevatedButton(
+              AuthButton(
+                text: widget.event == null ? 'Add Event' : 'Update Event',
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     firebase_auth.User? currentUser = _authService.getCurrentUser();
@@ -144,7 +146,6 @@ class _EventFormState extends State<EventForm> {
                     }
                   }
                 },
-                child: Text(widget.event == null ? 'Add Event' : 'Update Event'),
               ),
             ],
           ),

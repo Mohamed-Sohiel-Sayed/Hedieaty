@@ -8,6 +8,7 @@ import '../../services/auth_service.dart';
 import '../../shared/widgets/refreshable widget.dart';
 import 'widgets/friend_list_item.dart';
 import '../../shared/widgets/flashy_bottom_navigation_bar.dart';
+import '../../shared/widgets/custom_widgets.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -55,10 +56,6 @@ class _HomePageState extends State<HomePage> {
     // Implement search friends logic
   }
 
-  void _createEventOrList() {
-    Navigator.of(context).pushNamed(AppRoutes.eventList, arguments: _authService.getCurrentUser()!.uid);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,23 +83,16 @@ class _HomePageState extends State<HomePage> {
         onRefresh: _refresh,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: _createEventOrList,
-                child: Text('Create Your Own Event/List'),
-              ),
-            ),
             Expanded(
               child: FutureBuilder<List<User>>(
                 future: _friendsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(child: CustomLoadingIndicator());
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No friends found'));
+                    return Center(child: CustomText(text: 'No friends found'));
                   } else {
                     List<User> friends = snapshot.data!;
                     return ListView.builder(

@@ -10,6 +10,7 @@ import '../../services/auth_service.dart';
 import '../../shared/widgets/flashy_bottom_navigation_bar.dart';
 import '../../routes.dart';
 import '../../shared/widgets/refreshable widget.dart';
+import '../../shared/widgets/custom_widgets.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -69,24 +70,25 @@ class _ProfilePageState extends State<ProfilePage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
+              AuthTextField(
                 controller: nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                labelText: 'Name',
               ),
-              TextField(
+              AuthTextField(
                 controller: emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                labelText: 'Email',
               ),
             ],
           ),
           actions: [
-            TextButton(
+            AuthTextButton(
+              text: 'Cancel',
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
             ),
-            TextButton(
+            AuthTextButton(
+              text: 'Save',
               onPressed: () async {
                 if (_user != null) {
                   User updatedUser = _user!.copyWith(
@@ -100,7 +102,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.of(context).pop();
                 }
               },
-              child: Text('Save'),
             ),
           ],
         );
@@ -130,32 +131,34 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'My Profile',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              CustomText(
+                text: 'My Profile',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
               ListTile(
-                title: Text(_user?.name ?? 'No Name'),
-                subtitle: Text(_user?.email ?? 'No Email'),
+                title: CustomText(text: _user?.name ?? 'No Name'),
+                subtitle: CustomText(text: _user?.email ?? 'No Email'),
                 trailing: IconButton(
                   icon: Icon(Icons.edit),
                   onPressed: _updateProfile,
                 ),
               ),
               SizedBox(height: 20),
-              Text(
-                'My Events',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              CustomText(
+                text: 'My Events',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
               StreamBuilder<List<Event>>(
                 stream: _eventsStream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(child: CustomLoadingIndicator());
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No events found'));
+                    return Center(child: CustomText(text: 'No events found'));
                   } else {
                     List<Event> events = snapshot.data!;
                     return ListView.builder(
@@ -164,8 +167,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       itemCount: events.length,
                       itemBuilder: (context, index) {
                         return ListTile(
-                          title: Text(events[index].name),
-                          subtitle: Text(events[index].date),
+                          title: CustomText(text: events[index].name),
+                          subtitle: CustomText(text: events[index].date),
                           onTap: () {
                             Navigator.of(context).pushNamed(
                               AppRoutes.giftList,
@@ -179,19 +182,20 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
               ),
               SizedBox(height: 20),
-              Text(
-                'My Gifts',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              CustomText(
+                text: 'My Gifts',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
               StreamBuilder<List<Gift>>(
                 stream: _giftsStream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(child: CustomLoadingIndicator());
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No gifts found'));
+                    return Center(child: CustomText(text: 'No gifts found'));
                   } else {
                     List<Gift> gifts = snapshot.data!;
                     return ListView.builder(
@@ -200,8 +204,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       itemCount: gifts.length,
                       itemBuilder: (context, index) {
                         return ListTile(
-                          title: Text(gifts[index].name),
-                          subtitle: Text(gifts[index].category),
+                          title: CustomText(text: gifts[index].name),
+                          subtitle: CustomText(text: gifts[index].category),
                           onTap: () {
                             Navigator.of(context).pushNamed(
                               AppRoutes.giftDetails,
@@ -215,11 +219,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
               ),
               SizedBox(height: 20),
-              ElevatedButton(
+              CustomNeumorphicButton(
+                text: 'My Pledged Gifts',
                 onPressed: () {
                   Navigator.of(context).pushNamed(AppRoutes.myPledgedGifts);
                 },
-                child: const Text('My Pledged Gifts'),
               ),
             ],
           ),
