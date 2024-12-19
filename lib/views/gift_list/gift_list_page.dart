@@ -4,9 +4,10 @@ import '../../controllers/gift_controller.dart';
 import '../../models/gift.dart';
 import '../../routes.dart';
 import '../../services/auth_service.dart';
+import '../../shared/widgets/refreshable widget.dart';
 import 'widgets/gift_list_item.dart';
 import 'widgets/gift_form.dart';
-import '../../shared/widgets/bottom_navigation_bar.dart';
+import '../../shared/widgets/flashy_bottom_navigation_bar.dart';
 
 class GiftListPage extends StatefulWidget {
   final String eventId;
@@ -36,6 +37,14 @@ class _GiftListPageState extends State<GiftListPage> {
       // Handle the case where the user is not signed in
       _giftsStream = Stream.error('User not signed in');
     }
+  }
+
+  Future<void> _refresh() async {
+    // Simulate a network call or data refresh
+    await Future.delayed(Duration(seconds: 2));
+    setState(() {
+      // Refresh the state of the widget
+    });
   }
 
   void _showGiftForm({Gift? gift}) {
@@ -88,58 +97,61 @@ class _GiftListPageState extends State<GiftListPage> {
         ]
             : null,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
-              value: _sortCriteria,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _sortCriteria = newValue!;
-                });
-              },
-              items: <String>['name', 'category', 'status']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text('Sort by $value'),
-                );
-              }).toList(),
-            ),
-          ),
-          Expanded(
-            child: StreamBuilder<List<Gift>>(
-              stream: _giftsStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('No gifts found'));
-                } else {
-                  List<Gift> gifts = _sortGifts(snapshot.data!);
-                  return ListView.builder(
-                    itemCount: gifts.length,
-                    itemBuilder: (context, index) {
-                      return GiftListItem(
-                        gift: gifts[index],
-                        onEdit: _isCurrentUser && !gifts[index].isPledged
-                            ? () {
-                          _showGiftForm(gift: gifts[index]);
-                        }
-                            : null,
-                      );
-                    },
+      body: RefreshableWidget(
+        onRefresh: _refresh,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: DropdownButton<String>(
+                value: _sortCriteria,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _sortCriteria = newValue!;
+                  });
+                },
+                items: <String>['name', 'category', 'status']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text('Sort by $value'),
                   );
-                }
-              },
+                }).toList(),
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              child: StreamBuilder<List<Gift>>(
+                stream: _giftsStream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text('No gifts found'));
+                  } else {
+                    List<Gift> gifts = _sortGifts(snapshot.data!);
+                    return ListView.builder(
+                      itemCount: gifts.length,
+                      itemBuilder: (context, index) {
+                        return GiftListItem(
+                          gift: gifts[index],
+                          onEdit: _isCurrentUser && !gifts[index].isPledged
+                              ? () {
+                            _showGiftForm(gift: gifts[index]);
+                          }
+                              : null,
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       ),
-      bottomNavigationBar: AppBottomNavigationBar(
+      bottomNavigationBar: FlashyBottomNavigationBar(
         currentIndex: 1,
         onTap: (index) {
           if (index == 0) {

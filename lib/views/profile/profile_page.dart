@@ -7,8 +7,9 @@ import '../../models/event.dart';
 import '../../models/gift.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
-import '../../shared/widgets/bottom_navigation_bar.dart';
+import '../../shared/widgets/flashy_bottom_navigation_bar.dart';
 import '../../routes.dart';
+import '../../shared/widgets/refreshable widget.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -44,6 +45,15 @@ class _ProfilePageState extends State<ProfilePage> {
     User? user = await _profileController.getUser(_currentUser!.uid);
     setState(() {
       _user = user;
+    });
+  }
+
+  Future<void> _refresh() async {
+    // Simulate a network call or data refresh
+    await Future.delayed(Duration(seconds: 2));
+    setState(() {
+      // Refresh the state of the widget
+      _fetchUserProfile();
     });
   }
 
@@ -113,7 +123,8 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: RefreshableWidget(
+        onRefresh: _refresh,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -208,13 +219,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 onPressed: () {
                   Navigator.of(context).pushNamed(AppRoutes.myPledgedGifts);
                 },
-                child: Text('My Pledged Gifts'),
+                child: const Text('My Pledged Gifts'),
               ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: AppBottomNavigationBar(
+      bottomNavigationBar: FlashyBottomNavigationBar(
         currentIndex: 2,
         onTap: (index) {
           if (index == 0) {
