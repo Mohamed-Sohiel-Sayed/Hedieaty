@@ -14,7 +14,17 @@ class _SignUpPageState extends State<SignUpPage> {
   final _emailController = TextEditingController();
   final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _mobileController = TextEditingController(); // Add mobile controller
   final AuthController _authController = AuthController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _nameController.dispose();
+    _passwordController.dispose();
+    _mobileController.dispose(); // Dispose mobile controller
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +54,11 @@ class _SignUpPageState extends State<SignUpPage> {
                 obscureText: true,
                 validator: Validators.validatePassword,
               ),
+              AuthTextField(
+                controller: _mobileController,
+                labelText: 'Mobile', // Add mobile field
+                validator: Validators.validateMobile, // Add mobile validator
+              ),
               SizedBox(height: 20),
               AuthButton(
                 text: 'Sign Up',
@@ -53,6 +68,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       _emailController.text,
                       _passwordController.text,
                       _nameController.text,
+                      _mobileController.text, // Pass mobile field
                     );
                     Navigator.of(context).pushReplacementNamed(AppRoutes.signIn);
                   }

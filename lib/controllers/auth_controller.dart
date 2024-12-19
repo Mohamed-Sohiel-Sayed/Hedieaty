@@ -7,8 +7,8 @@ class AuthController {
     await _authService.signInWithEmailAndPassword(email, password);
   }
 
-  Future<void> register(String email, String password, String name) async {
-    await _authService.registerWithEmailAndPassword(email, password, name);
+  Future<void> register(String email, String password, String name, String mobile) async {
+    await _authService.registerWithEmailAndPassword(email, password, name, mobile);
   }
 
   Future<void> signOut() async {

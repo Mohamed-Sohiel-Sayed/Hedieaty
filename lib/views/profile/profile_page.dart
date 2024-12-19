@@ -65,6 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context) {
         TextEditingController nameController = TextEditingController(text: _user?.name);
         TextEditingController emailController = TextEditingController(text: _user?.email);
+        TextEditingController mobileController = TextEditingController(text: _user?.mobile); // Add mobile controller
         return AlertDialog(
           title: Text('Update Profile'),
           content: Column(
@@ -77,6 +78,10 @@ class _ProfilePageState extends State<ProfilePage> {
               AuthTextField(
                 controller: emailController,
                 labelText: 'Email',
+              ),
+              AuthTextField(
+                controller: mobileController,
+                labelText: 'Mobile', // Add mobile field
               ),
             ],
           ),
@@ -94,6 +99,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   User updatedUser = _user!.copyWith(
                     name: nameController.text,
                     email: emailController.text,
+                    mobile: mobileController.text, // Add mobile field
                   );
                   await _profileController.updateUser(updatedUser);
                   setState(() {
@@ -138,7 +144,13 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               ListTile(
                 title: CustomText(text: _user?.name ?? 'No Name'),
-                subtitle: CustomText(text: _user?.email ?? 'No Email'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(text: _user?.email ?? 'No Email'),
+                    CustomText(text: _user?.mobile ?? 'No Mobile'), // Add mobile field
+                  ],
+                ),
                 trailing: IconButton(
                   icon: Icon(Icons.edit),
                   onPressed: _updateProfile,

@@ -16,7 +16,7 @@ class AuthService {
     }
   }
 
-  Future<User?> registerWithEmailAndPassword(String email, String password, String name) async {
+  Future<User?> registerWithEmailAndPassword(String email, String password, String name, String mobile) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       User? user = result.user;
@@ -25,8 +25,9 @@ class AuthService {
           id: user.uid,
           name: name,
           email: user.email!,
+          mobile: mobile, // Add mobile field
           profilePictureUrl: '',
-          friends: [], mobile: '',
+          friends: [],
         );
         await _cloudService.createUserDocument(newUser);
       }
