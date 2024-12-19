@@ -8,8 +8,9 @@ class GiftListItem extends StatelessWidget {
   final Gift gift;
   final GiftController _controller = GiftController();
   final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  GiftListItem({required this.gift, this.onEdit});
+  GiftListItem({required this.gift, this.onEdit, this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +22,7 @@ class GiftListItem extends StatelessWidget {
           CustomText(text: '${gift.category} - ${gift.status}'),
           if (gift.isPledged)
             CustomText(
-              text: 'Pledged',
+              text: 'Pledged by: ${gift.pledgedBy}',
               style: TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
@@ -49,6 +50,9 @@ class GiftListItem extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Gift published successfully')),
                 );
+                if (onDelete != null) {
+                  onDelete!(); // Refresh the gift list
+                }
               },
             ),
           if (onEdit != null)
@@ -60,9 +64,35 @@ class GiftListItem extends StatelessWidget {
             icon: Icon(Icons.delete),
             onPressed: () async {
               if (!gift.isPledged) {
-                await _controller.deleteGift(gift.id, gift.isPublic, gift.userId);
+                bool confirm = await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Delete Gift'),
+                    content: Text('Are you sure you want to delete this gift?'),
+                    actions: [
+                      TextButton(
+                        child: Text('Cancel'),
+                        onPressed: () => Navigator.of(context).pop(false),
+                      ),
+                      ElevatedButton(
+                        child: Text('Delete'),
+                        onPressed: () => Navigator.of(context).pop(true),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm) {
+                  await _controller.deleteGift(gift.id, gift.isPublic, gift.userId);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Gift deleted successfully')),
+                  );
+                  if (onDelete != null) {
+                    onDelete!(); // Refresh the gift list
+                  }
+                }
+              } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Gift deleted successfully')),
+                  SnackBar(content: Text('Cannot delete a pledged gift')),
                 );
               }
             },
@@ -73,7 +103,11 @@ class GiftListItem extends StatelessWidget {
         Navigator.of(context).pushNamed(
           AppRoutes.giftDetails,
           arguments: {'gift': gift, 'userId': gift.userId},
-        );
+        ).then((_) {
+          if (onDelete != null) {
+            onDelete!(); // Refresh the gift list after returning
+          }
+        });
       },
     );
   }

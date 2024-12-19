@@ -1,97 +1,132 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'dart:async';
 import '../models/gift.dart';
+import 'package:rxdart/rxdart.dart';
 
 class DatabaseService {
-  static final DatabaseService _instance = DatabaseService._internal();
-  factory DatabaseService() => _instance;
-  static Database? _database;
+  Database? _database;
+  final _controller = BehaviorSubject<List<Gift>>();
 
-  DatabaseService._internal();
+  DatabaseService() {
+    _initDB();
+  }
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDatabase();
+    await _initDB();
     return _database!;
   }
 
-  Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'gifts.db');
-    return await openDatabase(
+  Future<void> _initDB() async {
+    String path = join(await getDatabasesPath(), 'hedieaty.db');
+    _database = await openDatabase(
       path,
       version: 1,
-      onCreate: _onCreate,
+      onCreate: _createDB,
     );
+    // After initializing DB, load initial data
+    await _loadPrivateGifts();
   }
 
-  Future<void> _onCreate(Database db, int version) async {
+  Future<void> _createDB(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE gifts (
+      CREATE TABLE gifts(
         id TEXT PRIMARY KEY,
         name TEXT,
         description TEXT,
         category TEXT,
         price REAL,
-        imageUrl TEXT,
-        status TEXT,
         eventId TEXT,
-        isPledged INTEGER,
-        pledgedBy TEXT,
         isPublic INTEGER,
-        userId TEXT
+        isPledged INTEGER,
+        status TEXT,
+        imageUrl TEXT,
+        userId TEXT,
+        pledgedBy TEXT
       )
     ''');
+  }
+
+  Future<void> _loadPrivateGifts() async {
+    List<Gift> gifts = await getAllPrivateGifts();
+    _controller.add(gifts);
   }
 
   Future<void> insertGift(Gift gift) async {
     final db = await database;
     await db.insert(
       'gifts',
-      gift.toMapForDatabase(),
+      gift.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-  }
-
-  Future<List<Gift>> getPrivateGifts(String userId) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'gifts',
-      where: 'isPublic = ? AND userId = ?',
-      whereArgs: [0, userId],
-    );
-    return List.generate(maps.length, (i) {
-      return Gift.fromMap(maps[i]);
-    });
-  }
-
-  Future<List<Gift>> getPrivateGiftsByEvent(String userId, String eventId) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'gifts',
-      where: 'isPublic = ? AND userId = ? AND eventId = ?',
-      whereArgs: [0, userId, eventId],
-    );
-    return List.generate(maps.length, (i) {
-      return Gift.fromMap(maps[i]);
-    });
+    await _loadPrivateGifts();
   }
 
   Future<void> updateGift(Gift gift) async {
     final db = await database;
     await db.update(
       'gifts',
-      gift.toMapForDatabase(),
-      where: 'id = ? AND userId = ?',
-      whereArgs: [gift.id, gift.userId],
+      gift.toMap(),
+      where: 'id = ?',
+      whereArgs: [gift.id],
     );
+    await _loadPrivateGifts();
   }
 
-  Future<void> deleteGift(String id, String userId) async {
+  Future<void> deleteGift(String giftId, String userId) async {
     final db = await database;
     await db.delete(
       'gifts',
       where: 'id = ? AND userId = ?',
-      whereArgs: [id, userId],
+      whereArgs: [giftId, userId],
     );
+    await _loadPrivateGifts();
+  }
+
+  // Get private gifts by user and event
+  Future<List<Gift>> getPrivateGiftsByEvent(String userId, String eventId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'gifts',
+      where: 'userId = ? AND eventId = ? AND isPublic = ?',
+      whereArgs: [userId, eventId, 0],
+    );
+
+    return List.generate(maps.length, (i) {
+      return Gift.fromMap(maps[i]);
+    });
+  }
+
+  // Get all private gifts
+  Future<List<Gift>> getAllPrivateGifts() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'gifts',
+      where: 'isPublic = ?',
+      whereArgs: [0],
+    );
+
+    return List.generate(maps.length, (i) {
+      return Gift.fromMap(maps[i]);
+    });
+  }
+
+  // Stream of private gifts
+  Stream<List<Gift>> getPrivateGiftsStream(String userId, String eventId) async* {
+    // Listen to the BehaviorSubject stream
+    await for (List<Gift> gifts in _controller.stream) {
+      List<Gift> filteredGifts = gifts
+          .where((gift) =>
+      gift.userId == userId &&
+          gift.eventId == eventId &&
+          !gift.isPublic)
+          .toList();
+      yield filteredGifts;
+    }
+  }
+
+  void dispose() {
+    _controller.close();
   }
 }

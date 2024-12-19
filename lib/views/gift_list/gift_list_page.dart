@@ -4,11 +4,10 @@ import '../../controllers/gift_controller.dart';
 import '../../models/gift.dart';
 import '../../routes.dart';
 import '../../services/auth_service.dart';
-import '../../shared/widgets/refreshable widget.dart';
+import '../../shared/widgets/custom_widgets.dart';
 import 'widgets/gift_list_item.dart';
 import 'widgets/gift_form.dart';
 import '../../shared/widgets/flashy_bottom_navigation_bar.dart';
-import '../../shared/widgets/custom_widgets.dart';
 
 class GiftListPage extends StatefulWidget {
   final String eventId;
@@ -23,9 +22,9 @@ class GiftListPage extends StatefulWidget {
 class _GiftListPageState extends State<GiftListPage> {
   final GiftController _controller = GiftController();
   final AuthService _authService = AuthService();
-  late Future<List<Gift>> _allGiftsFuture;
   String _sortCriteria = 'name';
   bool _isCurrentUser = false;
+  Future<List<Gift>>? _giftsFuture;
 
   @override
   void initState() {
@@ -33,20 +32,13 @@ class _GiftListPageState extends State<GiftListPage> {
     firebase_auth.User? currentUser = _authService.getCurrentUser();
     if (currentUser != null) {
       _isCurrentUser = currentUser.uid == widget.userId;
-      String userId = currentUser.uid;
-      _allGiftsFuture = _controller.getAllGifts(userId, widget.eventId);
-    } else {
-      _allGiftsFuture = Future.error('User not signed in');
     }
+    _fetchGifts();
   }
 
-  Future<void> _refresh() async {
+  void _fetchGifts() {
     setState(() {
-      firebase_auth.User? currentUser = _authService.getCurrentUser();
-      if (currentUser != null) {
-        String userId = currentUser.uid;
-        _allGiftsFuture = _controller.getAllGifts(userId, widget.eventId);
-      }
+      _giftsFuture = _controller.getAllGifts(widget.userId, widget.eventId);
     });
   }
 
@@ -59,10 +51,10 @@ class _GiftListPageState extends State<GiftListPage> {
           return GiftForm(
             gift: gift,
             onSave: (Gift savedGift) {
-              _refresh();
+              _fetchGifts(); // Refresh the gift list after saving
             },
             eventId: widget.eventId,
-            userId: widget.userId, // Pass the userId to the GiftForm
+            userId: widget.userId,
           );
         },
       );
@@ -100,20 +92,22 @@ class _GiftListPageState extends State<GiftListPage> {
         ]
             : null,
       ),
-      body: RefreshableWidget(
-        onRefresh: _refresh,
-        child: FutureBuilder<List<Gift>>(
-          future: _allGiftsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CustomLoadingIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: CustomText(text: 'No gifts found'));
-            } else {
-              List<Gift> gifts = _sortGifts(snapshot.data!);
-              return ListView.builder(
+      body: FutureBuilder<List<Gift>>(
+        future: _giftsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CustomLoadingIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: CustomText(text: 'No gifts found'));
+          } else {
+            List<Gift> gifts = _sortGifts(snapshot.data!);
+            return RefreshIndicator(
+              onRefresh: () async {
+                _fetchGifts();
+              },
+              child: ListView.builder(
                 itemCount: gifts.length,
                 itemBuilder: (context, index) {
                   return GiftListItem(
@@ -123,12 +117,15 @@ class _GiftListPageState extends State<GiftListPage> {
                       _showGiftForm(gift: gifts[index]);
                     }
                         : null,
+                    onDelete: () {
+                      _fetchGifts(); // Refresh the gift list after deletion
+                    },
                   );
                 },
-              );
-            }
-          },
-        ),
+              ),
+            );
+          }
+        },
       ),
       bottomNavigationBar: FlashyBottomNavigationBar(
         currentIndex: 1,
