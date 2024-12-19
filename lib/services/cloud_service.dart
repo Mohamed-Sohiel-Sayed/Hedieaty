@@ -20,6 +20,16 @@ class CloudService {
     });
   }
 
+  Stream<List<Gift>> getPublicGifts() {
+    return _firestore.collection('gifts').where('isPublic', isEqualTo: true).snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => Gift.fromFirestore(doc)).toList();
+    });
+  }
+
+  Future<void> deleteGift(String giftId) async {
+    await _firestore.collection('gifts').doc(giftId).delete();
+  }
+
   // User-related methods
   Future<void> createUserDocument(User user) async {
     await _firestore.collection('users').doc(user.id).set(user.toMap());

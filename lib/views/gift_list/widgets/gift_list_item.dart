@@ -27,27 +27,48 @@ class GiftListItem extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+          if (!gift.isPublic)
+            CustomText(
+              text: 'Private',
+              style: TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
         ],
       ),
-      trailing: onEdit != null
-          ? Row(
+      trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: onEdit,
-          ),
+          if (!gift.isPublic)
+            IconButton(
+              icon: Icon(Icons.publish),
+              tooltip: 'Publish Gift',
+              onPressed: () async {
+                await _controller.publishGift(gift);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Gift published successfully')),
+                );
+              },
+            ),
+          if (onEdit != null)
+            IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: onEdit,
+            ),
           IconButton(
             icon: Icon(Icons.delete),
             onPressed: () async {
               if (!gift.isPledged) {
-                await _controller.deleteGift(gift.id);
+                await _controller.deleteGift(gift.id, gift.isPublic, gift.userId);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Gift deleted successfully')),
+                );
               }
             },
           ),
         ],
-      )
-          : null,
+      ),
       onTap: () {
         Navigator.of(context).pushNamed(
           AppRoutes.giftDetails,

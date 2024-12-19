@@ -23,7 +23,7 @@ class GiftListPage extends StatefulWidget {
 class _GiftListPageState extends State<GiftListPage> {
   final GiftController _controller = GiftController();
   final AuthService _authService = AuthService();
-  late Stream<List<Gift>> _giftsStream;
+  late Future<List<Gift>> _allGiftsFuture;
   String _sortCriteria = 'name';
   bool _isCurrentUser = false;
 
@@ -33,18 +33,20 @@ class _GiftListPageState extends State<GiftListPage> {
     firebase_auth.User? currentUser = _authService.getCurrentUser();
     if (currentUser != null) {
       _isCurrentUser = currentUser.uid == widget.userId;
-      _giftsStream = _controller.getGifts(widget.eventId);
+      String userId = currentUser.uid;
+      _allGiftsFuture = _controller.getAllGifts(userId, widget.eventId);
     } else {
-      // Handle the case where the user is not signed in
-      _giftsStream = Stream.error('User not signed in');
+      _allGiftsFuture = Future.error('User not signed in');
     }
   }
 
   Future<void> _refresh() async {
-    // Simulate a network call or data refresh
-    await Future.delayed(Duration(seconds: 2));
     setState(() {
-      // Refresh the state of the widget
+      firebase_auth.User? currentUser = _authService.getCurrentUser();
+      if (currentUser != null) {
+        String userId = currentUser.uid;
+        _allGiftsFuture = _controller.getAllGifts(userId, widget.eventId);
+      }
     });
   }
 
@@ -57,7 +59,7 @@ class _GiftListPageState extends State<GiftListPage> {
           return GiftForm(
             gift: gift,
             onSave: (Gift savedGift) {
-              setState(() {});
+              _refresh();
             },
             eventId: widget.eventId,
             userId: widget.userId, // Pass the userId to the GiftForm
@@ -100,65 +102,32 @@ class _GiftListPageState extends State<GiftListPage> {
       ),
       body: RefreshableWidget(
         onRefresh: _refresh,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButton<String>(
-                value: _sortCriteria,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _sortCriteria = newValue!;
-                  });
-                },
-                items: <String>['name', 'category', 'status']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(
-                      'Sort by $value',
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                    ),
+        child: FutureBuilder<List<Gift>>(
+          future: _allGiftsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CustomLoadingIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(child: CustomText(text: 'No gifts found'));
+            } else {
+              List<Gift> gifts = _sortGifts(snapshot.data!);
+              return ListView.builder(
+                itemCount: gifts.length,
+                itemBuilder: (context, index) {
+                  return GiftListItem(
+                    gift: gifts[index],
+                    onEdit: _isCurrentUser && !gifts[index].isPledged
+                        ? () {
+                      _showGiftForm(gift: gifts[index]);
+                    }
+                        : null,
                   );
-                }).toList(),
-                dropdownColor: Theme.of(context).scaffoldBackgroundColor,
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                ),
-              ),
-            ),
-            Expanded(
-              child: StreamBuilder<List<Gift>>(
-                stream: _giftsStream,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CustomLoadingIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: CustomText(text: 'No gifts found'));
-                  } else {
-                    List<Gift> gifts = _sortGifts(snapshot.data!);
-                    return ListView.builder(
-                      itemCount: gifts.length,
-                      itemBuilder: (context, index) {
-                        return GiftListItem(
-                          gift: gifts[index],
-                          onEdit: _isCurrentUser && !gifts[index].isPledged
-                              ? () {
-                            _showGiftForm(gift: gifts[index]);
-                          }
-                              : null,
-                        );
-                      },
-                    );
-                  }
                 },
-              ),
-            ),
-          ],
+              );
+            }
+          },
         ),
       ),
       bottomNavigationBar: FlashyBottomNavigationBar(

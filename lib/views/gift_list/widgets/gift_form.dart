@@ -118,35 +118,31 @@ class _GiftFormState extends State<GiftForm> {
                   if (_formKey.currentState!.validate()) {
                     firebase_auth.User? currentUser = _authService.getCurrentUser();
                     if (currentUser != null) {
+                      String userId = currentUser.uid;
                       if (widget.gift == null) {
                         // Add new gift
                         Gift gift = Gift(
-                          id: '', // Temporary ID, will be replaced by Firestore
+                          id: DateTime.now().millisecondsSinceEpoch.toString(), // Unique ID
                           name: _nameController.text,
                           description: _descriptionController.text,
                           category: _categoryController.text,
                           price: double.parse(_priceController.text),
                           imageUrl: '', // Handle image upload separately
                           status: 'available',
-                          eventId: widget.eventId, // Set the eventId appropriately
+                          eventId: widget.eventId,
                           isPledged: false,
-                          userId: widget.userId, // Set the userId appropriately
+                          userId: userId,
+                          isPublic: false, // New gifts are private by default
                         );
                         await _controller.addGift(gift);
                         widget.onSave(gift);
                       } else {
                         // Update existing gift
-                        Gift updatedGift = Gift(
-                          id: widget.gift!.id,
+                        Gift updatedGift = widget.gift!.copyWith(
                           name: _nameController.text,
                           description: _descriptionController.text,
                           category: _categoryController.text,
                           price: double.parse(_priceController.text),
-                          imageUrl: widget.gift!.imageUrl, // Handle image upload separately
-                          status: widget.gift!.status,
-                          eventId: widget.gift!.eventId,
-                          isPledged: widget.gift!.isPledged,
-                          userId: widget.gift!.userId, // Set the userId appropriately
                         );
                         await _controller.updateGift(updatedGift);
                         widget.onSave(updatedGift);

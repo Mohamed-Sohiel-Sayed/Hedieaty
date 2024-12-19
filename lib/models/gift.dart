@@ -10,7 +10,9 @@ class Gift {
   final String status;
   final String eventId;
   final bool isPledged;
-  final String userId; // Add this property
+  final String userId;
+  final String? pledgedBy;
+  final bool isPublic;
 
   Gift({
     required this.id,
@@ -22,28 +24,49 @@ class Gift {
     required this.status,
     required this.eventId,
     required this.isPledged,
-    required this.userId, // Add this property
+    required this.userId,
+    this.pledgedBy,
+    this.isPublic = false,
   });
 
-  // Add this property to the fromFirestore method
   factory Gift.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map;
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Gift(
       id: doc.id,
       name: data['name'] ?? '',
       description: data['description'] ?? '',
       category: data['category'] ?? '',
-      price: data['price']?.toDouble() ?? 0.0,
+      price: (data['price'] as num?)?.toDouble() ?? 0.0,
       imageUrl: data['imageUrl'] ?? '',
       status: data['status'] ?? '',
       eventId: data['eventId'] ?? '',
-      isPledged: data['isPledged'] ?? false,
-      userId: data['userId'] ?? '', // Add this property
+      isPledged: _parseBool(data['isPledged']),
+      userId: data['userId'] ?? '',
+      pledgedBy: data['pledgedBy'],
+      isPublic: _parseBool(data['isPublic']),
+    );
+  }
+
+  factory Gift.fromMap(Map<String, dynamic> data) {
+    return Gift(
+      id: data['id'] ?? '',
+      name: data['name'] ?? '',
+      description: data['description'] ?? '',
+      category: data['category'] ?? '',
+      price: (data['price'] as num?)?.toDouble() ?? 0.0,
+      imageUrl: data['imageUrl'] ?? '',
+      status: data['status'] ?? '',
+      eventId: data['eventId'] ?? '',
+      isPledged: _parseBool(data['isPledged']),
+      userId: data['userId'] ?? '',
+      pledgedBy: data['pledgedBy'],
+      isPublic: _parseBool(data['isPublic']),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'description': description,
       'category': category,
@@ -52,7 +75,9 @@ class Gift {
       'status': status,
       'eventId': eventId,
       'isPledged': isPledged,
-      'userId': userId, // Add this property
+      'userId': userId,
+      'pledgedBy': pledgedBy,
+      'isPublic': isPublic,
     };
   }
 
@@ -66,7 +91,9 @@ class Gift {
     String? status,
     String? eventId,
     bool? isPledged,
-    String? userId, // Add this property
+    String? userId,
+    String? pledgedBy,
+    bool? isPublic,
   }) {
     return Gift(
       id: id ?? this.id,
@@ -78,7 +105,40 @@ class Gift {
       status: status ?? this.status,
       eventId: eventId ?? this.eventId,
       isPledged: isPledged ?? this.isPledged,
-      userId: userId ?? this.userId, // Add this property
+      userId: userId ?? this.userId,
+      pledgedBy: pledgedBy ?? this.pledgedBy,
+      isPublic: isPublic ?? this.isPublic,
     );
+  }
+
+  static bool _parseBool(dynamic value) {
+    if (value is bool) {
+      return value;
+    } else if (value is int) {
+      return value == 1;
+    } else if (value is String) {
+      return value.toLowerCase() == 'true';
+    } else {
+      return false;
+    }
+  }
+}
+
+extension GiftDatabaseMapping on Gift {
+  Map<String, dynamic> toMapForDatabase() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'category': category,
+      'price': price,
+      'imageUrl': imageUrl,
+      'status': status,
+      'eventId': eventId,
+      'isPledged': isPledged ? 1 : 0, // Convert boolean to integer
+      'userId': userId,
+      'pledgedBy': pledgedBy,
+      'isPublic': isPublic ? 1 : 0, // Convert boolean to integer
+    };
   }
 }

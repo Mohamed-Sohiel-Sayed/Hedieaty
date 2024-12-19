@@ -20,7 +20,8 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
     super.initState();
     firebase_auth.User? currentUser = _authService.getCurrentUser();
     if (currentUser != null) {
-      _pledgedGiftsStream = _giftController.getPledgedGifts(currentUser.uid);
+      String userId = currentUser.uid;
+      _pledgedGiftsStream = _giftController.getPledgedGifts(userId);
     } else {
       // Handle the case where the user is not signed in
       _pledgedGiftsStream = Stream.error('User not signed in');
@@ -51,9 +52,17 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
                   title: CustomText(text: gifts[index].name),
                   subtitle: CustomText(text: gifts[index].category),
                   trailing: IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () {
-                      // Add logic to modify the pledge if still valid
+                    icon: Icon(Icons.remove_circle_outline),
+                    onPressed: () async {
+                      // Logic to unpledge the gift
+                      Gift updatedGift = gifts[index].copyWith(
+                        isPledged: false,
+                        pledgedBy: null,
+                      );
+                      await _giftController.updateGift(updatedGift);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Gift unpledged successfully')),
+                      );
                     },
                   ),
                 );
