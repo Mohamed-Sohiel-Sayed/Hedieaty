@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
 import '../models/gift.dart';
-import '../models/user.dart';
+import '../models/user.dart'; // Ensure the User model is imported
 import '../services/cloud_service.dart';
 import '../services/database_service.dart';
 import '../services/auth_service.dart';
@@ -22,7 +22,6 @@ class GiftController {
     }
   }
 
-
   Future<void> updateGift(Gift gift) async {
     if (gift.isPublic) {
       await _firestore.collection('gifts').doc(gift.id).update(gift.toMap());
@@ -30,7 +29,6 @@ class GiftController {
       await _databaseService.updateGift(gift);
     }
   }
-
 
   Future<void> deleteGift(String giftId, bool isPublic, String userId) async {
     if (isPublic) {
@@ -61,7 +59,7 @@ class GiftController {
     return allGifts;
   }
 
-  // **UPDATED METHOD:** Get All Gifts as Stream for Real-Time Updates
+  // Get All Gifts as Stream for Real-Time Updates
   Stream<List<Gift>> getAllGiftsStream(String userId, String eventId) {
     // Stream for public gifts
     Stream<List<Gift>> publicGiftsStream = _firestore
@@ -131,7 +129,7 @@ class GiftController {
         snapshot.docs.map((doc) => Gift.fromFirestore(doc)).toList());
   }
 
-  // **UPDATED METHOD:** Pledge Gift with Friendship Verification
+  // Pledge Gift with Friendship Verification
   Future<void> pledgeGift(String giftId) async {
     String? currentUserId = _authService.getCurrentUser()?.uid;
     if (currentUserId == null) {

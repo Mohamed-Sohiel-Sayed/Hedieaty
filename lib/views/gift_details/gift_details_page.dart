@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../../controllers/gift_controller.dart';
-import '../../models/gift.dart';
-import '../../services/auth_service.dart';
-import '../../shared/widgets/custom_widgets.dart';
+import '../../../controllers/gift_controller.dart';
+import '../../../models/gift.dart';
+import '../../../services/auth_service.dart';
+import '../../../shared/widgets/custom_widgets.dart';
 
 class GiftDetailsPage extends StatefulWidget {
   final Gift gift;
@@ -28,6 +28,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
   bool _isCurrentUser = false;
   File? _image;
   Future<Gift>? _giftFuture;
+  Future<String>? _pledgedByNameFuture; // Future to hold pledgedBy name
 
   @override
   void initState() {
@@ -45,12 +46,18 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
       _isCurrentUser = currentUserFirebase.uid == widget.userId;
     }
     _fetchGift();
+    if (widget.gift.isPledged && widget.gift.pledgedBy != null) {
+      _pledgedByNameFuture = _controller.fetchUser(widget.gift.pledgedBy!).then((user) => user?.name ?? 'Unknown');
+    }
   }
 
   void _fetchGift() {
     setState(() {
       _giftFuture = _controller.getAllGifts(widget.userId, widget.gift.eventId)
           .then((gifts) => gifts.firstWhere((g) => g.id == widget.gift.id, orElse: () => widget.gift));
+      if (widget.gift.isPledged && widget.gift.pledgedBy != null) {
+        _pledgedByNameFuture = _controller.fetchUser(widget.gift.pledgedBy!).then((user) => user?.name ?? 'Unknown');
+      }
     });
   }
 
@@ -82,7 +89,14 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gift Details'),
+        title: CustomText(
+          text: 'Gift Details',
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        elevation: 0,
       ),
       body: FutureBuilder<Gift>(
         future: _giftFuture,
@@ -90,7 +104,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CustomLoadingIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
+            return Center(child: CustomText(text: 'Error: ${snapshot.error}', color: Colors.red));
           } else if (!snapshot.hasData) {
             return Center(child: CustomText(text: 'Gift not found'));
           } else {
@@ -154,12 +168,13 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                       enabled: _isCurrentUser && !isPledged,
                     ),
                     SizedBox(height: 20),
-                    if (_isCurrentUser) ...[
+                    if (_isCurrentUser && !isPledged) ...[
                       _image == null
                           ? CustomText(text: 'No image selected.')
                           : Image.file(_image!),
-                      ElevatedButton(
-                        child: Text('Upload Image'),
+                      ElevatedButton.icon(
+                        icon: Icon(Icons.upload),
+                        label: Text('Upload Image'),
                         onPressed: _pickImage,
                       ),
                       SizedBox(height: 20),
@@ -204,24 +219,53 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                           ),
                         ),
                       )
-                    else if (isPledged)
-                      Center(
-                        child: Text(
-                          pledgedBy != null
-                              ? 'Pledged by: $pledgedBy'
-                              : 'Gift has been pledged.',
-                          style: TextStyle(
-                              fontSize: 16, color: Colors.grey),
-                        ),
+                    else if (isPledged && pledgedBy != null)
+                      FutureBuilder<String>(
+                        future: _pledgedByNameFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Center(
+                              child: CustomText(
+                                text: 'Pledged by: Loading...',
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.grey),
+                              ),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: CustomText(
+                                text: 'Pledged by: Error',
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.red),
+                              ),
+                            );
+                          } else {
+                            return Center(
+                              child: CustomText(
+                                text: 'Pledged by: ${snapshot.data}',
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.grey),
+                              ),
+                            );
+                          }
+                        },
                       )
-                    else
-                      Center(
-                        child: Text(
-                          'You can only pledge your friends\' gifts.',
-                          style: TextStyle(
-                              fontSize: 16, color: Colors.red),
+                    else if (isPledged && pledgedBy == null)
+                        Center(
+                          child: CustomText(
+                            text: 'Pledged by: Unknown',
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.grey),
+                          ),
+                        )
+                      else
+                        Center(
+                          child: CustomText(
+                            text: 'You can only pledge your friends\' gifts.',
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.red),
+                          ),
                         ),
-                      ),
                   ],
                 ),
               ),

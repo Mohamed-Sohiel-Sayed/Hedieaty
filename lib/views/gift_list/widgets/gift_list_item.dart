@@ -3,6 +3,7 @@ import '../../../models/gift.dart';
 import '../../../controllers/gift_controller.dart';
 import '../../../routes.dart';
 import '../../../shared/widgets/custom_widgets.dart';
+import '../../../models/user.dart';
 
 class GiftListItem extends StatelessWidget {
   final Gift gift;
@@ -11,6 +12,12 @@ class GiftListItem extends StatelessWidget {
   final VoidCallback? onDelete;
 
   GiftListItem({required this.gift, this.onEdit, this.onDelete});
+
+  /// Fetches the name of the user who pledged the gift.
+  Future<String> _getPledgedByName(String userId) async {
+    User? user = await _controller.fetchUser(userId);
+    return user?.name ?? 'Unknown';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +28,39 @@ class GiftListItem extends StatelessWidget {
         children: [
           CustomText(text: '${gift.category} - ${gift.status}'),
           if (gift.isPledged)
-            CustomText(
-              text: 'Pledged by: ${gift.pledgedBy}',
+            gift.pledgedBy != null
+                ? FutureBuilder<String>(
+              future: _getPledgedByName(gift.pledgedBy!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CustomText(
+                    text: 'Pledged by: Loading...',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return CustomText(
+                    text: 'Pledged by: Error',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                } else {
+                  return CustomText(
+                    text: 'Pledged by: ${snapshot.data}',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                }
+              },
+            )
+                : CustomText(
+              text: 'Pledged by: Unknown',
               style: TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
