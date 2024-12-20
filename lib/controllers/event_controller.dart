@@ -28,10 +28,11 @@ class EventController {
     try {
       QuerySnapshot snapshot = await _firestore.collection('events')
           .where('userId', isEqualTo: userId)
-          .where('date', isGreaterThan: DateTime.now().toIso8601String())
+          .where('eventDate', isGreaterThanOrEqualTo: Timestamp.now())
           .get();
       return snapshot.docs.length;
     } catch (e) {
+      print('Error fetching upcoming events for user $userId: $e');
       return 0;
     }
   }

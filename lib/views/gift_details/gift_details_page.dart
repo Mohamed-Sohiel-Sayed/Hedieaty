@@ -103,6 +103,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
               child: Form(
                 key: _formKey,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     AuthTextField(
                       controller: _nameController,

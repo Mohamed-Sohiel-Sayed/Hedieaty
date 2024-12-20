@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../controllers/event_controller.dart';
 import '../../models/event.dart';
 import '../../services/auth_service.dart';
-import '../../shared/widgets/refreshable widget.dart';
 import 'widgets/event_list_item.dart';
 import 'widgets/event_form.dart';
 import '../../shared/widgets/flashy_bottom_navigation_bar.dart';
@@ -95,7 +94,7 @@ class _EventListPageState extends State<EventListPage> {
         ]
             : null,
       ),
-      body: RefreshableWidget(
+      body: RefreshIndicator(
         onRefresh: _refresh,
         child: Column(
           children: [
