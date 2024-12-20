@@ -9,8 +9,8 @@ import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import '../../shared/widgets/flashy_bottom_navigation_bar.dart';
 import '../../routes.dart';
-import '../../shared/widgets/refreshable widget.dart';
 import '../../shared/widgets/custom_widgets.dart';
+
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -22,6 +22,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final EventController _eventController = EventController();
   final GiftController _giftController = GiftController();
   final ProfileController _profileController = ProfileController();
+
   late Stream<List<Event>> _eventsStream;
   late Stream<List<Gift>> _giftsStream;
   late firebase_auth.User? _currentUser;
@@ -50,40 +51,48 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _refresh() async {
-    // Simulate a network call or data refresh
     await Future.delayed(Duration(seconds: 2));
-    setState(() {
-      // Refresh the state of the widget
-      _fetchUserProfile();
-    });
+    _fetchUserProfile();
   }
 
   void _updateProfile() {
-    // Implement profile update logic
     showDialog(
       context: context,
       builder: (context) {
-        TextEditingController nameController = TextEditingController(text: _user?.name);
-        TextEditingController emailController = TextEditingController(text: _user?.email);
-        TextEditingController mobileController = TextEditingController(text: _user?.mobile); // Add mobile controller
+        TextEditingController nameController =
+        TextEditingController(text: _user?.name);
+        TextEditingController emailController =
+        TextEditingController(text: _user?.email);
+        TextEditingController mobileController =
+        TextEditingController(text: _user?.mobile);
         return AlertDialog(
-          title: Text('Update Profile'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AuthTextField(
-                controller: nameController,
-                labelText: 'Name',
-              ),
-              AuthTextField(
-                controller: emailController,
-                labelText: 'Email',
-              ),
-              AuthTextField(
-                controller: mobileController,
-                labelText: 'Mobile', // Add mobile field
-              ),
-            ],
+          title: CustomText(
+            text: 'Update Profile',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AuthTextField(
+                  controller: nameController,
+                  labelText: 'Name',
+                ),
+                SizedBox(height: 12),
+                AuthTextField(
+                  controller: emailController,
+                  labelText: 'Email',
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                SizedBox(height: 12),
+                AuthTextField(
+                  controller: mobileController,
+                  labelText: 'Mobile',
+                  keyboardType: TextInputType.phone,
+                ),
+              ],
+            ),
           ),
           actions: [
             AuthTextButton(
@@ -99,7 +108,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   User updatedUser = _user!.copyWith(
                     name: nameController.text,
                     email: emailController.text,
-                    mobile: mobileController.text, // Add mobile field
+                    mobile: mobileController.text,
                   );
                   await _profileController.updateUser(updatedUser);
                   setState(() {
@@ -115,14 +124,233 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Widget _buildProfileHeader() {
+    // Check if profilePictureUrl is not null and not empty
+    final bool hasProfilePicture = _user?.profilePictureUrl != null &&
+        _user!.profilePictureUrl.isNotEmpty;
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            // User Avatar
+            CircleAvatar(
+              radius: 40,
+              backgroundColor:
+              Theme.of(context).colorScheme.primaryContainer,
+              backgroundImage: hasProfilePicture
+                  ? NetworkImage(_user!.profilePictureUrl)
+                  : null,
+              child: !hasProfilePicture
+                  ? Icon(
+                Icons.person,
+                size: 40,
+                color:
+                Theme.of(context).colorScheme.onPrimaryContainer,
+              )
+                  : null,
+            ),
+            SizedBox(width: 16),
+            // User Information
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    text: _user?.name ?? 'No Name',
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  SizedBox(height: 4),
+                  CustomText(
+                    text: _user?.email ?? 'No Email',
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                  SizedBox(height: 4),
+                  CustomText(
+                    text: _user?.mobile ?? 'No Mobile',
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ],
+              ),
+            ),
+            // Edit Button
+            IconButton(
+              icon: Icon(Icons.edit,
+                  color: Theme.of(context).colorScheme.primary),
+              onPressed: _updateProfile,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventsSection() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomText(
+              text: 'My Events',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface, // Specify color
+            ),
+            SizedBox(height: 12),
+            StreamBuilder<List<Event>>(
+              stream: _eventsStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CustomLoadingIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                      child: CustomText(
+                        text: 'Error: ${snapshot.error}',
+                        color: Colors.red, // Highlight errors in red
+                      ));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: CustomText(text: 'No events found'));
+                } else {
+                  List<Event> events = snapshot.data!;
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: events.length,
+                    separatorBuilder: (context, index) => Divider(),
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: Icon(Icons.event,
+                            color: Theme.of(context).colorScheme.primary),
+                        title: CustomText(
+                            text: events[index].name,
+                            fontWeight: FontWeight.bold),
+                        subtitle: CustomText(text: events[index].date.toString()),
+                        trailing: Icon(Icons.arrow_forward_ios,
+                            size: 16, color: Colors.grey),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            AppRoutes.giftList,
+                            arguments: {
+                              'eventId': events[index].id,
+                              'userId': _currentUser!.uid
+                            },
+                          );
+                        },
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGiftsSection() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomText(
+              text: 'My Gifts',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface, // Specify color
+            ),
+            SizedBox(height: 12),
+            StreamBuilder<List<Gift>>(
+              stream: _giftsStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CustomLoadingIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                      child: CustomText(
+                        text: 'Error: ${snapshot.error}',
+                        color: Colors.red, // Highlight errors in red
+                      ));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: CustomText(text: 'No gifts found'));
+                } else {
+                  List<Gift> gifts = snapshot.data!;
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: gifts.length,
+                    separatorBuilder: (context, index) => Divider(),
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: Icon(Icons.card_giftcard,
+                            color: Theme.of(context).colorScheme.primary),
+                        title: CustomText(
+                            text: gifts[index].name,
+                            fontWeight: FontWeight.bold),
+                        subtitle: CustomText(text: gifts[index].category),
+                        trailing: Icon(Icons.arrow_forward_ios,
+                            size: 16, color: Colors.grey),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            AppRoutes.giftDetails,
+                            arguments: {
+                              'gift': gifts[index],
+                              'userId': _currentUser!.uid
+                            },
+                          );
+                        },
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPledgedGiftsButton() {
+    return Center(
+      child: CustomNeumorphicButton(
+        text: 'My Pledged Gifts',
+        onPressed: () {
+          Navigator.of(context).pushNamed(AppRoutes.myPledgedGifts);
+        },
+        color: Theme.of(context).colorScheme.secondaryContainer, // Correct usage
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile'),
+        title: CustomText(
+          text: 'Profile',
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.white, // Specify color explicitly
+        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: Colors.white),
+            tooltip: 'Logout',
             onPressed: () async {
               await _authService.signOut();
               Navigator.of(context).pushReplacementNamed(AppRoutes.signIn);
@@ -130,114 +358,23 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      body: RefreshableWidget(
+      body: RefreshIndicator(
         onRefresh: _refresh,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                text: 'My Profile',
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              ListTile(
-                title: CustomText(text: _user?.name ?? 'No Name'),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(text: _user?.email ?? 'No Email'),
-                    CustomText(text: _user?.mobile ?? 'No Mobile'), // Add mobile field
-                  ],
-                ),
-                trailing: IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: _updateProfile,
-                ),
-              ),
-              SizedBox(height: 20),
-              CustomText(
-                text: 'My Events',
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              StreamBuilder<List<Event>>(
-                stream: _eventsStream,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CustomLoadingIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: CustomText(text: 'No events found'));
-                  } else {
-                    List<Event> events = snapshot.data!;
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: events.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: CustomText(text: events[index].name),
-                          subtitle: CustomText(text: events[index].date),
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
-                              AppRoutes.giftList,
-                              arguments: {'eventId': events[index].id, 'userId': _currentUser!.uid},
-                            );
-                          },
-                        );
-                      },
-                    );
-                  }
-                },
-              ),
-              SizedBox(height: 20),
-              CustomText(
-                text: 'My Gifts',
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              StreamBuilder<List<Gift>>(
-                stream: _giftsStream,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CustomLoadingIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: CustomText(text: 'Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: CustomText(text: 'No gifts found'));
-                  } else {
-                    List<Gift> gifts = snapshot.data!;
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: gifts.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: CustomText(text: gifts[index].name),
-                          subtitle: CustomText(text: gifts[index].category),
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
-                              AppRoutes.giftDetails,
-                              arguments: {'gift': gifts[index], 'userId': _currentUser!.uid},
-                            );
-                          },
-                        );
-                      },
-                    );
-                  }
-                },
-              ),
-              SizedBox(height: 20),
-              CustomNeumorphicButton(
-                text: 'My Pledged Gifts',
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.myPledgedGifts);
-                },
-              ),
-            ],
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                _buildProfileHeader(),
+                SizedBox(height: 20),
+                _buildEventsSection(),
+                SizedBox(height: 20),
+                _buildGiftsSection(),
+                SizedBox(height: 20),
+                _buildPledgedGiftsButton(),
+              ],
+            ),
           ),
         ),
       ),
@@ -247,12 +384,7 @@ class _ProfilePageState extends State<ProfilePage> {
           if (index == 0) {
             Navigator.of(context).pushReplacementNamed(AppRoutes.home);
           } else if (index == 1) {
-            if (_currentUser != null) {
-              Navigator.of(context).pushReplacementNamed(
-                AppRoutes.eventList,
-                arguments: _currentUser!.uid,
-              );
-            }
+            Navigator.of(context).pushReplacementNamed(AppRoutes.eventList);
           }
         },
       ),
