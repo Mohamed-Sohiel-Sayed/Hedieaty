@@ -259,14 +259,77 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildGiftsSection() {
-    // Assuming similar structure to _buildEventsSection
-    // Implement accordingly
-    return Container(); // Placeholder
-  }
-
-  Widget _buildPledgedGiftsButton() {
-    // Implement your pledged gifts button
-    return Container(); // Placeholder
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomText(
+              text: 'My Gifts',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface, // Specify color
+            ),
+            SizedBox(height: 12),
+            StreamBuilder<List<Gift>>(
+              stream: _giftsStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CustomLoadingIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                      child: CustomText(
+                        text: 'Error: ${snapshot.error}',
+                        color: Colors.red,
+                      ));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: CustomText(text: 'No gifts found'));
+                } else {
+                  List<Gift> gifts = snapshot.data!;
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: gifts.length,
+                    separatorBuilder: (context, index) => Divider(),
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: Icon(Icons.card_giftcard,
+                            color: Theme.of(context).colorScheme.primary),
+                        title: CustomText(
+                            text: gifts[index].name,
+                            fontWeight: FontWeight.bold),
+                        subtitle:
+                        CustomText(text: gifts[index].category),
+                        trailing: Icon(Icons.arrow_forward_ios,
+                            size: 16, color: Colors.grey),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            AppRoutes.giftDetails, // assuming this route exists
+                            arguments: gifts[index],
+                          );
+                        },
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+            SizedBox(height: 16),
+            // Updated Navigation to Pledged Gifts Page
+            ElevatedButton.icon(
+              icon: Icon(Icons.assignment_turned_in),
+              label: Text('View Pledged Gifts'),
+              onPressed: () {
+                Navigator.of(context).pushNamed(AppRoutes.myPledgedGifts);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -277,58 +340,46 @@ class _ProfilePageState extends State<ProfilePage> {
           text: 'Profile',
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: Colors.white, // Specify color explicitly
+          color: Colors.white,
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout, color: Colors.white),
-            tooltip: 'Logout',
-            onPressed: () async {
-              await _authService.signOut();
-              Navigator.of(context).pushReplacementNamed(AppRoutes.signIn);
-            },
-          ),
-        ],
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        elevation: 0,
       ),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: SingleChildScrollView(
           physics: AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildProfileHeader(),
-                SizedBox(height: 20),
-                _buildEventsSection(),
-                SizedBox(height: 20),
-                _buildGiftsSection(),
-                SizedBox(height: 20),
-                _buildPledgedGiftsButton(),
-              ],
-            ),
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              _buildProfileHeader(),
+              SizedBox(height: 16),
+              _buildEventsSection(),
+              SizedBox(height: 16),
+              _buildGiftsSection(),
+            ],
           ),
         ),
       ),
       bottomNavigationBar: FlashyBottomNavigationBar(
-        currentIndex: 2,
+        currentIndex: 2, // Assuming Profile is index 2
         onTap: (index) {
-          if (index == 0) {
-            Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-          } else if (index == 1) {
-            if (_currentUser != null) {
+          switch (index) {
+            case 0:
+              Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+              break;
+            case 1:
+            // Events
               Navigator.of(context).pushReplacementNamed(
                 AppRoutes.eventList,
-                arguments: _currentUser!.uid, // Pass the userId here
+                arguments: _currentUser!.uid,
               );
-            } else {
-              // Optionally handle the case where the user is not signed in
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('User not signed in')),
-              );
-            }
-          } else if (index == 2) {
-            // Already on Profile Page
+              break;
+            case 2:
+            // Profile
+              break; // Already on profile
+            default:
+              break;
           }
         },
       ),
