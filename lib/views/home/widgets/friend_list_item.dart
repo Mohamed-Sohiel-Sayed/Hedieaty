@@ -24,13 +24,6 @@ class FriendListItem extends StatelessWidget {
         backgroundImage: hasProfilePicture
             ? NetworkImage(friend.profilePictureUrl)
             : AssetImage('assets/default_avatar.png') as ImageProvider,
-        child: !hasProfilePicture
-            ? Icon(
-          Icons.person,
-          size: 25,
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
-        )
-            : null,
       ),
       title: CustomText(
         text: friend.name,
