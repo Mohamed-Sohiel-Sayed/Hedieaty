@@ -49,8 +49,8 @@ class HomeController {
   }
 
   /// Adds a friend by their mobile number.
-  /// If the user does not exist, creates a new user and then adds them as a friend.
-  Future<bool> addFriendByMobile(String currentUserId, String mobile, {String? name, String? email}) async {
+  /// If the user does not exist, does NOT create a new user and returns false.
+  Future<bool> addFriendByMobile(String currentUserId, String mobile) async {
     try {
       // Sanitize mobile number (e.g., remove spaces, dashes)
       String sanitizedMobile = mobile.replaceAll(RegExp(r'\D'), '');
@@ -62,47 +62,39 @@ class HomeController {
           .limit(1)
           .get();
 
-      String friendId;
-
+      // --- CHANGED LOGIC: Return false if no user found ---
       if (userSnapshot.docs.isEmpty) {
-        // User does not exist, create a new user with provided or default email
-        DocumentReference newUserRef = await _firestore.collection('users').add({
-          'name': name ?? 'Unnamed User',
-          'email': email ?? '', // Set to provided email or empty string
-          'profilePictureUrl': '', // Default empty string or a placeholder URL
-          'mobile': sanitizedMobile,
-          'friends': [],
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-        friendId = newUserRef.id;
-      } else {
-        friendId = userSnapshot.docs.first.id;
-      }
-
-      if (friendId == currentUserId) {
-        // Prevent adding oneself as a friend
+        // User does not exist in the system
         return false;
+      } else {
+        // A user with that mobile exists
+        String friendId = userSnapshot.docs.first.id;
+
+        if (friendId == currentUserId) {
+          // Prevent adding oneself as a friend
+          return false;
+        }
+
+        // Check if already friends
+        DocumentSnapshot currentUserDoc =
+        await _firestore.collection('users').doc(currentUserId).get();
+        List<String> currentFriends = List<String>.from(currentUserDoc['friends'] ?? []);
+        if (currentFriends.contains(friendId)) {
+          return false; // Already friends
+        }
+
+        // Add friend to current user's friends list
+        await _firestore.collection('users').doc(currentUserId).update({
+          'friends': FieldValue.arrayUnion([friendId]),
+        });
+
+        // Optionally, add current user to friend's friends list
+        await _firestore.collection('users').doc(friendId).update({
+          'friends': FieldValue.arrayUnion([currentUserId]),
+        });
+
+        return true;
       }
-
-      // Check if already friends
-      DocumentSnapshot currentUserDoc =
-      await _firestore.collection('users').doc(currentUserId).get();
-      List<String> currentFriends = List<String>.from(currentUserDoc['friends'] ?? []);
-      if (currentFriends.contains(friendId)) {
-        return false; // Already friends
-      }
-
-      // Add friend to current user's friends list
-      await _firestore.collection('users').doc(currentUserId).update({
-        'friends': FieldValue.arrayUnion([friendId]),
-      });
-
-      // Optionally, add current user to friend's friends list for mutual friendship
-      await _firestore.collection('users').doc(friendId).update({
-        'friends': FieldValue.arrayUnion([currentUserId]),
-      });
-
-      return true;
     } catch (e) {
       throw e;
     }

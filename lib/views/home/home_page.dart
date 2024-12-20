@@ -58,7 +58,16 @@ class _HomePageState extends State<HomePage> {
         // If a friend was added, refresh the friends list
         _initializeFriends();
         setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Friend added successfully')),
+        );
+      } else if (value == false) {
+        // If adding friend failed because user does not exist
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('User with this mobile number does not exist')),
+        );
       }
+      // Handle other cases if necessary
     });
   }
 
@@ -91,11 +100,6 @@ class _HomePageState extends State<HomePage> {
             onPressed: _searchFriends,
           ),
           IconButton(
-            icon: Icon(Icons.person_add, color: Colors.white),
-            tooltip: 'Add Friend',
-            onPressed: _addFriend,
-          ),
-          IconButton(
             icon: Icon(Icons.logout, color: Colors.white),
             tooltip: 'Logout',
             onPressed: _logout,
@@ -104,32 +108,32 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         elevation: 0,
       ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<List<app_user.User>>(
-          future: _friendsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CustomLoadingIndicator());
-            } else if (snapshot.hasError) {
-              return Center(
-                child: CustomText(
-                  text: 'Error: ${snapshot.error}',
-                  color: Colors.red,
-                  fontSize: 16,
-                ),
-              );
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: CustomText(
-                  text: 'No friends found',
-                  fontSize: 18,
-                  color: Colors.grey[700],
-                ),
-              );
-            } else {
-              List<app_user.User> friends = snapshot.data!;
-              return ListView.builder(
+      body: FutureBuilder<List<app_user.User>>(
+        future: _friendsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CustomLoadingIndicator());
+          } else if (snapshot.hasError) {
+            return Center(
+              child: CustomText(
+                text: 'Error: ${snapshot.error}',
+                color: Colors.red,
+                fontSize: 16,
+              ),
+            );
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: CustomText(
+                text: 'No friends found',
+                fontSize: 18,
+                color: Colors.grey[700],
+              ),
+            );
+          } else {
+            List<app_user.User> friends = snapshot.data!;
+            return RefreshIndicator(
+              onRefresh: _refresh,
+              child: ListView.builder(
                 padding: EdgeInsets.all(16.0),
                 itemCount: friends.length,
                 itemBuilder: (context, index) {
@@ -178,10 +182,10 @@ class _HomePageState extends State<HomePage> {
                     },
                   );
                 },
-              );
-            }
-          },
-        ),
+              ),
+            );
+          }
+        },
       ),
       bottomNavigationBar: FlashyBottomNavigationBar(
         currentIndex: 0, // Indicates Home Page
@@ -206,6 +210,11 @@ class _HomePageState extends State<HomePage> {
               break;
           }
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.person_add),
+        onPressed: _addFriend,
+        tooltip: 'Add Friend',
       ),
     );
   }
@@ -232,6 +241,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
     setState(() {
       _isContactsSelected = isContacts;
       _errorMessage = null;
+      _mobileController.clear(); // Clear mobile when toggling
       _nameController.clear(); // Clear name when toggling
     });
   }
@@ -278,22 +288,15 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
 
       if (selectedContact != null) {
         // Extract the first mobile number
-        String? mobile = selectedContact.phones.isNotEmpty ? selectedContact.phones.first.number : null;
-        String? name = selectedContact.displayName;
+        String? mobile =
+        selectedContact.phones.isNotEmpty ? selectedContact.phones.first.number : null;
 
         if (mobile != null && mobile.isNotEmpty) {
           app_user.User? appUser = await widget.homeController.getCurrentUser();
           if (appUser != null) {
-            bool success = await widget.homeController.addFriendByMobile(
-              appUser.id,
-              mobile,
-              name: name, // Pass the friend's name
-            );
+            bool success = await widget.homeController.addFriendByMobile(appUser.id, mobile);
             if (success) {
               Navigator.of(context).pop(true); // Indicate success
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Friend added successfully!')),
-              );
             } else {
               setState(() {
                 _errorMessage = 'Friend already added or cannot add yourself.';
@@ -323,18 +326,10 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
 
   Future<void> _addFriendManually() async {
     String mobile = _mobileController.text.trim();
-    String name = _nameController.text.trim();
 
     if (mobile.isEmpty) {
       setState(() {
         _errorMessage = 'Please enter a mobile number.';
-      });
-      return;
-    }
-
-    if (name.isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter a name.';
       });
       return;
     }
@@ -350,13 +345,9 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
         bool success = await widget.homeController.addFriendByMobile(
           appUser.id,
           mobile,
-          name: name, // Pass the friend's name
         );
         if (success) {
           Navigator.of(context).pop(true); // Indicate success
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Friend added successfully!')),
-          );
         } else {
           setState(() {
             _errorMessage = 'Friend already added or cannot add yourself.';
@@ -433,11 +424,13 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
                     keyboardType: TextInputType.phone,
                   ),
                   SizedBox(height: 20),
-                  AuthTextField(
-                    controller: _nameController,
-                    labelText: 'Friend\'s Name',
-                    keyboardType: TextInputType.name,
-                  ),
+                  // The name field is optional since we don't use it in addFriendByMobile
+                  // However, if you want to collect it for some reason:
+                  // AuthTextField(
+                  //   controller: _nameController,
+                  //   labelText: 'Friend\'s Name',
+                  //   keyboardType: TextInputType.name,
+                  // ),
                   SizedBox(height: 20),
                   CustomNeumorphicButton(
                     text: 'Add Friend',
