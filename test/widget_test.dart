@@ -8,8 +8,76 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter_test/flutter_test.dart';
 //
-// import 'package:hedieaty/main.dart';
-//
+import 'package:hedieaty/main.dart' as app;
+
+void main(){
+    IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+    group('Testing user', (){
+        // Setting up testing environment for all tests
+        setUpAll(() async {
+            WidgetsFlutterBinding.ensureInitialized();
+            await Firebase.initializeApp();
+        });
+        testWidgets(
+            'Integration Test Scenario',
+            (WidgetTester tester) async{
+                // Initializing Application
+                app.main();
+
+                /******************* Login Landing Page *******************/
+                print('Login test');
+                await tester.pumpAndSettle(const Duration(seconds: 5));
+
+                expect(find.byType(AuthTextField), findMWidgets(2));
+                expect(find.byType(AuthButton), findsOneWidget);
+                expect(find.byType(AuthTextButton), findsOneWidget);
+
+                await tester.tap(find.byType(AuthTextButton));
+                await tester.pumpAndSettle(const Duration(seconds: 2));
+                print('Login test succeeded');
+
+                /******************* Sign Up Page *******************/
+                print('Sign up test');
+                // Enterred Sign Up Page
+                expect(find.byType(AuthTextField), findMWidgets(4));
+                expect(find.byType(AuthButton), findsOneWidget);
+                expect(find.byType(AuthTextButton), findsOneWidget);
+                
+                final nameTextField = find.byType(AuthTextField).at(0);
+                final emailTextField = find.byType(AuthTextField).at(1);
+                final passwordTextField = find.byType(AuthTextField).at(2);
+                final mobileTextField = find.byType(AuthTextField).at(3);
+
+                await tester.enterText(nameTextField, 'Tester Name');
+                await tester.enterText(emailAddress, 'tester@tester.com');
+                await tester.enterText(passwordTextField, 'testerpassword');
+                await tester.enterText(mobileController, '0123456789');
+                await tester.pumpAndSettle();
+
+                await tester.tap(AuthButton);
+
+                /******************* Login Page After Sign Up *******************/
+                await tester.pumpAndSettle(const Duration(seconds: 2));
+                print('Sign up test succeeded');
+                print('Login test started');
+
+                final loginEmail = find.byType(AuthTextField).first;
+                final loginPassword = find.byType(AuthTextField).last;
+
+                await tester.enterText(loginEmail, 'tester@tester.com');
+                await tester.enterText(loginPassword, 'testerpassword');
+                await tester.pumpAndSettle();
+
+                await tester.tap(find.byType(AuthButton));
+                await tester.pumpAndSettle(const Duration(seconds: 5));
+                print('Login test started');
+            }
+        )
+
+    });
+}
+
+// Testing Tutorial
 // void main() {
 //   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
 //     // Build our app and trigger a frame.
